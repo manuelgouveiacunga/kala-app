@@ -1,104 +1,132 @@
-import { MongoClient } from 'mongodb'
-import { v4 as uuidv4 } from 'uuid'
 import { NextResponse } from 'next/server'
 
-// MongoDB connection
-let client
-let db
+// Mock API endpoints - Firebase will be integrated later
 
-async function connectToMongo() {
-  if (!client) {
-    client = new MongoClient(process.env.MONGO_URL)
-    await client.connect()
-    db = client.db(process.env.DB_NAME)
+export async function GET(request) {
+  const { pathname } = new URL(request.url)
+
+  // Get user messages
+  if (pathname.includes('/api/messages')) {
+    const userId = pathname.split('/').pop()
+    
+    return NextResponse.json({
+      success: true,
+      messages: [
+        {
+          id: '1',
+          text: 'És uma pessoa incrível!',
+          timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+          read: false
+        },
+        {
+          id: '2',
+          text: 'Admiro muito a tua dedicação',
+          timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+          read: false
+        }
+      ]
+    })
   }
-  return db
+
+  // Get user by username
+  if (pathname.includes('/api/user/')) {
+    const username = pathname.split('/').pop()
+    
+    return NextResponse.json({
+      success: true,
+      user: {
+        username: username,
+        displayName: username,
+        isPremium: false,
+        messageCount: 0
+      }
+    })
+  }
+
+  return NextResponse.json({ success: false, error: 'Route not found' }, { status: 404 })
 }
 
-// Helper function to handle CORS
-function handleCORS(response) {
-  response.headers.set('Access-Control-Allow-Origin', process.env.CORS_ORIGINS || '*')
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization')
-  response.headers.set('Access-Control-Allow-Credentials', 'true')
-  return response
-}
-
-// OPTIONS handler for CORS
-export async function OPTIONS() {
-  return handleCORS(new NextResponse(null, { status: 200 }))
-}
-
-// Route handler function
-async function handleRoute(request, { params }) {
-  const { path = [] } = params
-  const route = `/${path.join('/')}`
-  const method = request.method
-
+export async function POST(request) {
+  const { pathname } = new URL(request.url)
+  
   try {
-    const db = await connectToMongo()
+    const body = await request.json()
 
-    // Root endpoint - GET /api/root (since /api/ is not accessible with catch-all)
-    if (route === '/root' && method === 'GET') {
-      return handleCORS(NextResponse.json({ message: "Hello World" }))
-    }
-    // Root endpoint - GET /api/root (since /api/ is not accessible with catch-all)
-    if (route === '/' && method === 'GET') {
-      return handleCORS(NextResponse.json({ message: "Hello World" }))
-    }
+    // Send message
+    if (pathname.includes('/api/messages/send')) {
+      const { username, message } = body
 
-    // Status endpoints - POST /api/status
-    if (route === '/status' && method === 'POST') {
-      const body = await request.json()
-      
-      if (!body.client_name) {
-        return handleCORS(NextResponse.json(
-          { error: "client_name is required" }, 
+      // Mock validation
+      if (!username || !message) {
+        return NextResponse.json(
+          { success: false, error: 'Dados inválidos' },
           { status: 400 }
-        ))
+        )
       }
 
-      const statusObj = {
-        id: uuidv4(),
-        client_name: body.client_name,
-        timestamp: new Date()
+      if (message.trim().length < 10) {
+        return NextResponse.json(
+          { success: false, error: 'Mensagem muito curta' },
+          { status: 400 }
+        )
       }
 
-      await db.collection('status_checks').insertOne(statusObj)
-      return handleCORS(NextResponse.json(statusObj))
+      // Mock: In real app, save to Firestore
+      return NextResponse.json({
+        success: true,
+        messageId: 'msg_' + Date.now()
+      })
     }
 
-    // Status endpoints - GET /api/status
-    if (route === '/status' && method === 'GET') {
-      const statusChecks = await db.collection('status_checks')
-        .find({})
-        .limit(1000)
-        .toArray()
+    // Create user
+    if (pathname.includes('/api/user/create')) {
+      const { email, username } = body
 
-      // Remove MongoDB's _id field from response
-      const cleanedStatusChecks = statusChecks.map(({ _id, ...rest }) => rest)
-      
-      return handleCORS(NextResponse.json(cleanedStatusChecks))
+      // Mock: In real app, create in Firebase Auth + Firestore
+      return NextResponse.json({
+        success: true,
+        user: {
+          uid: 'user_' + Date.now(),
+          email,
+          username,
+          isPremium: false,
+          messageCount: 0,
+          createdAt: new Date().toISOString()
+        }
+      })
     }
 
-    // Route not found
-    return handleCORS(NextResponse.json(
-      { error: `Route ${route} not found` }, 
-      { status: 404 }
-    ))
-
+    return NextResponse.json({ success: false, error: 'Route not found' }, { status: 404 })
   } catch (error) {
-    console.error('API Error:', error)
-    return handleCORS(NextResponse.json(
-      { error: "Internal server error" }, 
+    return NextResponse.json(
+      { success: false, error: 'Erro no servidor' },
       { status: 500 }
-    ))
+    )
   }
 }
 
-// Export all HTTP methods
-export const GET = handleRoute
-export const POST = handleRoute
-export const PUT = handleRoute
-export const DELETE = handleRoute
-export const PATCH = handleRoute
+export async function PUT(request) {
+  const { pathname } = new URL(request.url)
+  
+  try {
+    const body = await request.json()
+
+    // Update user premium status
+    if (pathname.includes('/api/user/premium')) {
+      const { userId } = body
+
+      // Mock: In real app, update in Firestore
+      return NextResponse.json({
+        success: true,
+        isPremium: true
+      })
+    }
+
+    return NextResponse.json({ success: false, error: 'Route not found' }, { status: 404 })
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: 'Erro no servidor' },
+      { status: 500 }
+    )
+  }
+}
