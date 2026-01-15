@@ -1,13 +1,13 @@
-import './globals.css'
+import '@/views/styles/globals.css'
 
 export const metadata = {
-  title: 'Next.js MongoDB Template',
-  description: 'A simple template with App Router, MongoDB, and shadcn/ui',
+  title: 'KALA - Mensagens Anónimas',
+  description: 'Recebe mensagens anónimas dos teus amigos. Seguro, privado e divertido.',
 }
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="pt-AO">
       <body>
         {children}
       </body>
