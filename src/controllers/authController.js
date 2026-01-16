@@ -1,17 +1,21 @@
-/**
- * Auth Controller
- * Lógica de negócio para autenticação
- */
-
 import User from '@/models/User'
+import {
+    loginWithGoogle as googleLoginService,
+    loginWithEmail as emailLoginService,
+    registerWithEmail as emailRegisterService,
+    logout as logoutService
+} from '@/services/auth'
+import {
+    getDataByField,
+} from '@/services/firestore'
+import { doc, getDoc, setDoc } from 'firebase/firestore'
+import { db } from '@/services/firebase'
 
 export class AuthController {
-    /**
-     * Regista um novo utilizador
-     */
+    
     static async register({ email, password, username }) {
         try {
-            // Validações
+
             if (!User.isValidEmail(email)) {
                 return {
                     success: false,
@@ -31,24 +35,57 @@ export class AuthController {
                     success: false,
                     error: 'Password deve ter pelo menos 6 caracteres'
                 }
+            }            
+            
+            const checkUsernamePromise = getDataByField('users', 'username', username);
+            const timeoutPromise = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error('Timeout ao verificar username')), 5000)
+            );
+
+            try {
+                const existingUsers = await Promise.race([checkUsernamePromise, timeoutPromise]);
+                if (existingUsers && existingUsers.length > 0) {
+                    return {
+                        success: false,
+                        error: 'Este nome de utilizador já está em uso.'
+                    }
+                }
+            } catch (err) {
+                console.error('Erro/Timeout ao verificar username:', err);
+                
+                
+                return {
+                    success: false,
+                    error: 'Erro de conexão com o banco de dados. Verifique se o Firestore está habilitado.'
+                }
             }
-
-            // TODO: Integrar com Firebase Auth
-            // const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-            // const user = userCredential.user
-
-            // Mock: Criar utilizador temporário
+            
+            const firebaseUser = await emailRegisterService(email, password)
             const newUser = new User({
-                uid: 'user_' + Date.now(),
-                email,
+                uid: firebaseUser.uid,
+                email: firebaseUser.email,
                 username,
-                displayName: username,
+                displayName: username, 
                 isPremium: false,
                 messageCount: 0
             })
+            
+            const saveProfilePromise = setDoc(doc(db, 'users', newUser.uid), newUser.toJSON());
 
-            // TODO: Salvar no Firestore
-            // await setDoc(doc(db, 'users', newUser.uid), newUser.toJSON())
+            try {
+                await Promise.race([
+                    saveProfilePromise,
+                    new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error('Timeout ao salvar perfil')), 5000)
+                    )
+                ]);
+            } catch (firestoreError) {
+                return {
+                    success: true,
+                    user: newUser.toJSON(),
+                    warning: 'Conta criada, mas houve um erro ao salvar o perfil. Algumas funcionalidades podem falhar.'
+                }
+            }
 
             return {
                 success: true,
@@ -56,19 +93,20 @@ export class AuthController {
             }
         } catch (error) {
             console.error('Erro ao registar:', error)
+            let errorMessage = 'Erro ao criar conta'
+            if (error.code === 'auth/email-already-in-use') {
+                errorMessage = 'Este email já está registado.'
+            }
             return {
                 success: false,
-                error: error.message || 'Erro ao criar conta'
+                error: errorMessage
             }
         }
     }
 
-    /**
-     * Faz login com email e password
-     */
     static async login({ email, password }) {
         try {
-            // Validações
+            
             if (!User.isValidEmail(email)) {
                 return {
                     success: false,
@@ -82,82 +120,87 @@ export class AuthController {
                     error: 'Password é obrigatória'
                 }
             }
+            
+            const firebaseUser = await emailLoginService(email, password)
+            const userDocRef = doc(db, 'users', firebaseUser.uid)
+            const userDoc = await getDoc(userDocRef)
 
-            // TODO: Integrar com Firebase Auth
-            // const userCredential = await signInWithEmailAndPassword(auth, email, password)
-            // const user = userCredential.user
+            if (!userDoc.exists()) {
+                
+                return {
+                    success: false,
+                    error: 'Perfil de utilizador não encontrado.'
+                }
+            }
 
-            // TODO: Buscar dados do utilizador no Firestore
-            // const userDoc = await getDoc(doc(db, 'users', user.uid))
-            // const userData = User.fromFirestore(userDoc)
-
-            // Mock: Retornar utilizador temporário
-            const mockUser = new User({
-                uid: 'user_mock',
-                email,
-                username: 'utilizador',
-                displayName: 'Utilizador',
-                isPremium: false,
-                messageCount: 2
-            })
+            const userData = User.fromFirestore(userDoc)
 
             return {
                 success: true,
-                user: mockUser.toJSON()
+                user: userData.toJSON()
             }
         } catch (error) {
             console.error('Erro ao fazer login:', error)
+            let errorMessage = 'Email ou password incorretos'
+            if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                errorMessage = 'Credenciais inválidas.'
+            }
             return {
                 success: false,
-                error: 'Email ou password incorretos'
+                error: errorMessage
             }
         }
     }
 
-    /**
-     * Faz login com Google
-     */
+    
     static async loginWithGoogle() {
         try {
-            // TODO: Integrar com Firebase Auth
-            // const provider = new GoogleAuthProvider()
-            // const result = await signInWithPopup(auth, provider)
-            // const user = result.user
+            
+            const firebaseUser = await googleLoginService()
 
-            // TODO: Verificar se utilizador já existe no Firestore
-            // Se não existir, criar novo registo
+            
+            const userDocRef = doc(db, 'users', firebaseUser.uid)
+            const userDoc = await getDoc(userDocRef)
 
-            // Mock: Retornar utilizador temporário
-            const mockUser = new User({
-                uid: 'user_google_mock',
-                email: 'user@gmail.com',
-                username: 'utilizador_google',
-                displayName: 'Utilizador Google',
-                isPremium: false,
-                messageCount: 0
-            })
+            let userProfile;
+
+            if (userDoc.exists()) {
+                
+                userProfile = User.fromFirestore(userDoc)
+            } else {
+                
+                
+                const baseUsername = firebaseUser.email.split('@')[0].replace(/[^a-zA-Z0-9_]/g, '')
+                const username = `${baseUsername}_${Math.floor(Math.random() * 1000)}`
+
+                userProfile = new User({
+                    uid: firebaseUser.uid,
+                    email: firebaseUser.email,
+                    username: username,
+                    displayName: firebaseUser.displayName || username,
+                    isPremium: false,
+                    messageCount: 0
+                })
+
+                await setDoc(doc(db, 'users', userProfile.uid), userProfile.toJSON())
+            }
 
             return {
                 success: true,
-                user: mockUser.toJSON()
+                user: userProfile.toJSON()
             }
         } catch (error) {
             console.error('Erro ao fazer login com Google:', error)
             return {
                 success: false,
-                error: 'Erro ao fazer login com Google'
+                error: 'Erro ao conectar com Google'
             }
         }
     }
-
-    /**
-     * Faz logout
-     */
+    
     static async logout() {
         try {
-            // TODO: Integrar com Firebase Auth
-            // await signOut(auth)
-
+            await logoutService()
             return {
                 success: true
             }
@@ -170,20 +213,17 @@ export class AuthController {
         }
     }
 
-    /**
-     * Obtém o utilizador atual
-     */
-    static async getCurrentUser() {
+    
+    static async getCurrentUser(uid) {
         try {
-            // TODO: Integrar com Firebase Auth
-            // const user = auth.currentUser
-            // if (!user) return null
+            if (!uid) return null
 
-            // TODO: Buscar dados do Firestore
-            // const userDoc = await getDoc(doc(db, 'users', user.uid))
-            // return User.fromFirestore(userDoc)
+            const userDocRef = doc(db, 'users', uid)
+            const userDoc = await getDoc(userDocRef)
 
-            // Mock: Retornar null (não autenticado)
+            if (userDoc.exists()) {
+                return User.fromFirestore(userDoc)
+            }
             return null
         } catch (error) {
             console.error('Erro ao obter utilizador:', error)

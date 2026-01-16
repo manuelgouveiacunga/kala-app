@@ -1,11 +1,6 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # IDE and editors
 .idea/
 .vscode/
-
-# Emergent platform files
-.emergent/
 
 # Dependencies
 node_modules/

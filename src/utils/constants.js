@@ -1,9 +1,3 @@
-/**
- * Application Constants
- * Constantes utilizadas em toda a aplicação
- */
-
-// Limites
 export const LIMITS = {
     FREE_MESSAGES: 80,
     MESSAGE_MIN_LENGTH: 10,
@@ -13,19 +7,17 @@ export const LIMITS = {
     PASSWORD_MIN_LENGTH: 6
 }
 
-// Preços
+
 export const PRICING = {
-    PREMIUM_MONTHLY: 3000, // Kz
+    PREMIUM_MONTHLY: 3000, 
     CURRENCY: 'AOA'
 }
 
-// Planos
 export const PLANS = {
     FREE: 'free',
     PREMIUM: 'premium'
 }
 
-// Status de assinatura
 export const SUBSCRIPTION_STATUS = {
     ACTIVE: 'active',
     INACTIVE: 'inactive',
@@ -33,14 +25,12 @@ export const SUBSCRIPTION_STATUS = {
     EXPIRED: 'expired'
 }
 
-// Métodos de pagamento
 export const PAYMENT_METHODS = {
     MULTICAIXA: 'multicaixa',
     UNITEL_MONEY: 'unitel_money',
     APPYPAY: 'appypay'
 }
 
-// Rotas da aplicação
 export const ROUTES = {
     HOME: '/',
     LOGIN: '/auth/login',
@@ -50,28 +40,21 @@ export const ROUTES = {
     SEND_MESSAGE: (username) => `/m/${username}`
 }
 
-// API Endpoints
 export const API_ENDPOINTS = {
-    // Auth
+    
     LOGIN: '/api/auth/login',
     REGISTER: '/api/auth/register',
     LOGOUT: '/api/auth/logout',
-
-    // Messages
+ 
     SEND_MESSAGE: '/api/messages/send',
     LIST_MESSAGES: (userId) => `/api/messages/list/${userId}`,
     READ_MESSAGE: (messageId) => `/api/messages/read/${messageId}`,
-
-    // Users
     GET_USER: (username) => `/api/users/${username}`,
     UPDATE_PROFILE: '/api/users/profile',
-
-    // Payments
     CREATE_PAYMENT: '/api/payments/create',
     PAYMENT_CALLBACK: '/api/payments/callback'
 }
 
-// Mensagens de erro
 export const ERROR_MESSAGES = {
     INVALID_EMAIL: 'Email inválido',
     INVALID_USERNAME: 'Username inválido. Use 3-20 caracteres (letras, números e _)',
@@ -83,7 +66,6 @@ export const ERROR_MESSAGES = {
     GENERIC_ERROR: 'Ocorreu um erro. Tente novamente.'
 }
 
-// Mensagens de sucesso
 export const SUCCESS_MESSAGES = {
     MESSAGE_SENT: 'Mensagem enviada com sucesso! 🎉',
     ACCOUNT_CREATED: 'Conta criada com sucesso!',
@@ -92,7 +74,6 @@ export const SUCCESS_MESSAGES = {
     PAYMENT_SUCCESS: 'Pagamento efetuado com sucesso! Bem-vindo ao Premium! 🌟'
 }
 
-// Configurações locais
 export const LOCALE = {
     LANGUAGE: 'pt-AO',
     TIMEZONE: 'Africa/Luanda',

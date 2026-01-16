@@ -15,30 +15,27 @@ export default function DashboardPage() {
     const [copied, setCopied] = useState(false)
 
     useEffect(() => {
-        // Check authentication
+        
         const userData = localStorage.getItem('kala_user')
         if (!userData) {
             router.push('/auth/login')
             return
         }
-
         const parsedUser = JSON.parse(userData)
         setUser(parsedUser)
 
-        // Load messages
-        // In real app we would call MessageController.listMessages(parsedUser.uid)
         const loadMessages = async () => {
-            // First try to load from localStorage for demo persistence
-            const savedMessages = localStorage.getItem(`kala_messages_${parsedUser.uid}`)
-
-            if (savedMessages) {
-                setMessages(JSON.parse(savedMessages))
-            } else {
-                // Fallback to mock messages from controller
+            try {
                 const result = await MessageController.listMessages(parsedUser.uid)
                 if (result.success) {
                     setMessages(result.messages)
                     localStorage.setItem(`kala_messages_${parsedUser.uid}`, JSON.stringify(result.messages))
+                }
+            } catch (error) {
+                console.error("Failed to load messages:", error)
+                const savedMessages = localStorage.getItem(`kala_messages_${parsedUser.uid}`)
+                if (savedMessages) {
+                    setMessages(JSON.parse(savedMessages))
                 }
             }
         }
@@ -86,7 +83,7 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
-            {/* Header */}
+            {}
             <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
                 <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-2">
@@ -102,13 +99,13 @@ export default function DashboardPage() {
             </header>
 
             <div className="container mx-auto px-4 py-8 max-w-4xl">
-                {/* Welcome */}
+                {}
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold mb-2">Olá, {user.displayName}! 👋</h1>
                     <p className="text-gray-600">Tens {messageCount} mensagem{messageCount !== 1 ? 's' : ''} anónima{messageCount !== 1 ? 's' : ''}</p>
                 </div>
 
-                {/* Link Share Card */}
+                {}
                 <Card className="mb-6 border-2 border-purple-200">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -133,7 +130,7 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                {/* Message Limit Card */}
+                {}
                 {!user.isPremium && (
                     <Card className="mb-6 border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
                         <CardHeader>
@@ -168,7 +165,7 @@ export default function DashboardPage() {
                     </Card>
                 )}
 
-                {/* Messages */}
+                {}
                 <Card>
                     <CardHeader>
                         <CardTitle>Mensagens Recebidas</CardTitle>

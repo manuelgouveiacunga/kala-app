@@ -4,6 +4,12 @@
  */
 
 import Subscription from '@/models/Subscription'
+import { db } from '@/services/firebase'
+import {
+    doc,
+    getDoc,
+    updateDoc
+} from 'firebase/firestore'
 
 export class PaymentController {
     /**
@@ -11,31 +17,16 @@ export class PaymentController {
      */
     static async createPayment(userId) {
         try {
-            // TODO: Integrar com AppyPay
-            // const response = await fetch('https://api.appypay.ao/v1/transactions', {
-            //   method: 'POST',
-            //   headers: {
-            //     'Authorization': `Bearer ${process.env.APPYPAY_API_KEY}`,
-            //     'Content-Type': 'application/json'
-            //   },
-            //   body: JSON.stringify({
-            //     amount: Subscription.PREMIUM_PRICE,
-            //     currency: 'AOA',
-            //     description: 'KALA Premium - Mensagens Ilimitadas',
-            //     userId: userId,
-            //     callbackUrl: `${process.env.NEXT_PUBLIC_BASE_URL}/api/payments/callback`
-            //   })
-            // })
+            // TODO: Integrar com AppyPay Real
+            // Por enquanto, vamos simular a criação, mas preparadando para o futuro
 
-            // const data = await response.json()
-
-            // Mock: Retornar dados de exemplo
+            // Mock: Retornar dados de exemplo simulando URL de pagamento
             const mockPayment = {
                 transactionId: 'txn_' + Date.now(),
                 amount: Subscription.PREMIUM_PRICE,
                 currency: 'AOA',
                 status: 'pending',
-                paymentUrl: 'https://pay.appypay.ao/mock-payment',
+                paymentUrl: 'https://pay.appypay.ao/mock-payment', // URL simulada
                 createdAt: new Date().toISOString()
             }
 
@@ -55,7 +46,7 @@ export class PaymentController {
     /**
      * Processa callback de pagamento
      */
-    static async processPaymentCallback(transactionId, status) {
+    static async processPaymentCallback(transactionId, status, userId) {
         try {
             // Verificar status do pagamento
             if (status !== 'success' && status !== 'completed') {
@@ -65,29 +56,14 @@ export class PaymentController {
                 }
             }
 
-            // TODO: Buscar transação no AppyPay para validar
-            // const response = await fetch(`https://api.appypay.ao/v1/transactions/${transactionId}`, {
-            //   headers: {
-            //     'Authorization': `Bearer ${process.env.APPYPAY_API_KEY}`
-            //   }
-            // })
-            // const transaction = await response.json()
+            // Ativar status premium do utilizador no Firestore
+            await updateDoc(doc(db, 'users', userId), {
+                isPremium: true,
+                updatedAt: new Date().toISOString()
+            })
 
-            // TODO: Buscar userId da transação
-            // const userId = transaction.userId
-
-            // TODO: Ativar assinatura premium
-            // const subscription = new Subscription({ userId })
-            // subscription.activate(transactionId, 'appypay')
-
-            // TODO: Salvar no Firestore
-            // await setDoc(doc(db, 'subscriptions', userId), subscription.toJSON())
-
-            // TODO: Atualizar status premium do utilizador
-            // await updateDoc(doc(db, 'users', userId), {
-            //   isPremium: true,
-            //   updatedAt: new Date().toISOString()
-            // })
+            // Registrar assinatura (se aplicável, ou apenas usar flag no user)
+            // await setDoc(doc(db, 'subscriptions', userId), { ... })
 
             return {
                 success: true,
@@ -107,30 +83,31 @@ export class PaymentController {
      */
     static async getSubscriptionStatus(userId) {
         try {
-            // TODO: Buscar assinatura no Firestore
-            // const subscriptionDoc = await getDoc(doc(db, 'subscriptions', userId))
+            // Buscar status diretamente no perfil do usuário
+            // Em uma implementação mais complexa, buscaríamos na coleção 'subscriptions'
+            const userDoc = await getDoc(doc(db, 'users', userId))
 
-            // if (!subscriptionDoc.exists()) {
-            //   return {
-            //     success: true,
-            //     subscription: null,
-            //     isPremium: false
-            //   }
-            // }
+            if (!userDoc.exists()) {
+                return {
+                    success: true,
+                    isPremium: false
+                }
+            }
 
-            // const subscription = Subscription.fromFirestore(subscriptionDoc)
+            const userData = userDoc.data()
+            const isPremium = userData.isPremium || false
 
-            // Mock: Retornar assinatura gratuita
-            const mockSubscription = new Subscription({
+            // Mockar objeto de assinatura baseado na flag isPremium
+            const subscriptionInfo = new Subscription({
                 userId: userId,
-                status: 'inactive',
-                plan: 'free'
+                status: isPremium ? 'active' : 'inactive',
+                plan: isPremium ? 'premium' : 'free'
             })
 
             return {
                 success: true,
-                subscription: mockSubscription.toJSON(),
-                isPremium: mockSubscription.isActive()
+                subscription: subscriptionInfo.toJSON(),
+                isPremium: isPremium
             }
         } catch (error) {
             console.error('Erro ao verificar assinatura:', error)
@@ -146,24 +123,11 @@ export class PaymentController {
      */
     static async cancelSubscription(userId) {
         try {
-            // TODO: Buscar assinatura no Firestore
-            // const subscriptionDoc = await getDoc(doc(db, 'subscriptions', userId))
-
-            // if (!subscriptionDoc.exists()) {
-            //   return { success: false, error: 'Assinatura não encontrada' }
-            // }
-
-            // const subscription = Subscription.fromFirestore(subscriptionDoc)
-            // subscription.cancel()
-
-            // TODO: Atualizar no Firestore
-            // await updateDoc(doc(db, 'subscriptions', userId), subscription.toJSON())
-
-            // TODO: Atualizar status do utilizador
-            // await updateDoc(doc(db, 'users', userId), {
-            //   isPremium: false,
-            //   updatedAt: new Date().toISOString()
-            // })
+            // Atualizar status do utilizador para free
+            await updateDoc(doc(db, 'users', userId), {
+                isPremium: false,
+                updatedAt: new Date().toISOString()
+            })
 
             return {
                 success: true,

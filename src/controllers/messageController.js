@@ -1,69 +1,77 @@
-/**
- * Message Controller
- * Lógica de negócio para mensagens
- */
-
 import Message from '@/models/Message'
 import User from '@/models/User'
+import { db } from '@/services/firebase'
+import {
+    collection,
+    addDoc,
+    query,
+    where,
+    getDocs,
+    doc,
+    updateDoc,
+    deleteDoc,
+    orderBy,
+    getDoc,
+    increment,
+    serverTimestamp
+} from 'firebase/firestore'
 
 export class MessageController {
-    /**
-     * Envia uma mensagem anónima
-     */
+    
     static async sendMessage({ username, text }) {
         try {
-            // Validar mensagem
+            
             if (!Message.isValid(text)) {
                 return {
                     success: false,
                     error: 'Mensagem inválida. Deve ter entre 10 e 500 caracteres.'
                 }
             }
+            
+            const usersRef = collection(db, 'users')
+            const q = query(usersRef, where('username', '==', username))
+            const querySnapshot = await getDocs(q)
 
-            // TODO: Buscar utilizador pelo username no Firestore
-            // const usersRef = collection(db, 'users')
-            // const q = query(usersRef, where('username', '==', username))
-            // const querySnapshot = await getDocs(q)
+            if (querySnapshot.empty) {
+                return {
+                    success: false,
+                    error: 'Utilizador não encontrado'
+                }
+            }
 
-            // if (querySnapshot.empty) {
-            //   return { success: false, error: 'Utilizador não encontrado' }
-            // }
+            const recipientDoc = querySnapshot.docs[0]
+            const recipientUser = User.fromFirestore(recipientDoc)
+            const recipientUserId = recipientDoc.id
 
-            // const recipientUser = User.fromFirestore(querySnapshot.docs[0])
+            
+            if (recipientUser.hasReachedMessageLimit()) {
+                return {
+                    success: false,
+                    error: 'A caixa de entrada deste utilizador está cheia.'
+                }
+            }
 
-            // Mock: Simular utilizador destinatário
-            const recipientUserId = 'user_' + username
-
-            // Verificar se utilizador atingiu limite (se não for premium)
-            // TODO: Implementar verificação real
-            // if (recipientUser.hasReachedMessageLimit()) {
-            //   return { success: false, error: 'Utilizador atingiu o limite de mensagens' }
-            // }
-
-            // Criar mensagem
-            const message = new Message({
+            
+            const messageData = {
                 userId: recipientUserId,
                 text: text.trim(),
-                timestamp: new Date().toISOString(),
+                timestamp: new Date().toISOString(), 
+                createdAt: serverTimestamp(), 
                 read: false
+            }
+
+            
+            const messageRef = await addDoc(collection(db, 'messages'), messageData)
+
+            
+            await updateDoc(doc(db, 'users', recipientUserId), {
+                messageCount: increment(1),
+                updatedAt: new Date().toISOString()
             })
-
-            // TODO: Salvar mensagem no Firestore
-            // const messageRef = await addDoc(collection(db, 'messages'), message.toJSON())
-            // message.id = messageRef.id
-
-            // TODO: Incrementar contador de mensagens do utilizador
-            // recipientUser.incrementMessageCount()
-            // await updateDoc(doc(db, 'users', recipientUser.uid), {
-            //   messageCount: recipientUser.messageCount
-            // })
-
-            // Mock: Simular ID da mensagem
-            message.id = 'msg_' + Date.now()
 
             return {
                 success: true,
-                messageId: message.id
+                messageId: messageRef.id
             }
         } catch (error) {
             console.error('Erro ao enviar mensagem:', error)
@@ -74,45 +82,27 @@ export class MessageController {
         }
     }
 
-    /**
-     * Lista mensagens de um utilizador
-     */
     static async listMessages(userId) {
         try {
-            // TODO: Buscar mensagens do Firestore
-            // const messagesRef = collection(db, 'messages')
-            // const q = query(
-            //   messagesRef, 
-            //   where('userId', '==', userId),
-            //   orderBy('timestamp', 'desc')
-            // )
-            // const querySnapshot = await getDocs(q)
-
-            // const messages = querySnapshot.docs.map(doc => 
-            //   Message.fromFirestore(doc)
-            // )
-
-            // Mock: Retornar mensagens de exemplo
-            const mockMessages = [
-                new Message({
-                    id: '1',
-                    userId: userId,
-                    text: 'És uma pessoa incrível!',
-                    timestamp: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-                    read: false
-                }),
-                new Message({
-                    id: '2',
-                    userId: userId,
-                    text: 'Admiro muito a tua dedicação',
-                    timestamp: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-                    read: false
+            const messagesRef = collection(db, 'messages')
+            const q = query(
+                messagesRef,
+                where('userId', '==', userId),
+                orderBy('createdAt', 'desc')
+            )
+            const querySnapshot = await getDocs(q)
+            const messages = querySnapshot.docs.map(doc => {
+                const data = doc.data();
+                return new Message({
+                    id: doc.id,
+                    ...data,
+                    
                 })
-            ]
+            })
 
             return {
                 success: true,
-                messages: mockMessages.map(m => m.toJSON())
+                messages: messages.map(m => m.toJSON())
             }
         } catch (error) {
             console.error('Erro ao listar mensagens:', error)
@@ -124,15 +114,11 @@ export class MessageController {
         }
     }
 
-    /**
-     * Marca uma mensagem como lida
-     */
     static async markAsRead(messageId) {
         try {
-            // TODO: Atualizar mensagem no Firestore
-            // await updateDoc(doc(db, 'messages', messageId), {
-            //   read: true
-            // })
+            await updateDoc(doc(db, 'messages', messageId), {
+                read: true
+            })
 
             return {
                 success: true
@@ -146,20 +132,19 @@ export class MessageController {
         }
     }
 
-    /**
-     * Elimina uma mensagem
-     */
     static async deleteMessage(messageId, userId) {
         try {
-            // TODO: Verificar se a mensagem pertence ao utilizador
-            // const messageDoc = await getDoc(doc(db, 'messages', messageId))
-            // if (!messageDoc.exists() || messageDoc.data().userId !== userId) {
-            //   return { success: false, error: 'Mensagem não encontrada' }
-            // }
+            const messageDocRef = doc(db, 'messages', messageId)
+            const messageDoc = await getDoc(messageDocRef)
 
-            // TODO: Eliminar mensagem do Firestore
-            // await deleteDoc(doc(db, 'messages', messageId))
+            if (!messageDoc.exists()) {
+                return { success: false, error: 'Mensagem não encontrada' }
+            }
 
+            if (messageDoc.data().userId !== userId) {
+                return { success: false, error: 'Sem permissão para apagar esta mensagem' }
+            }
+            await deleteDoc(messageDocRef)
             return {
                 success: true
             }
@@ -172,23 +157,16 @@ export class MessageController {
         }
     }
 
-    /**
-     * Conta mensagens não lidas
-     */
     static async countUnread(userId) {
         try {
-            // TODO: Contar mensagens não lidas no Firestore
-            // const messagesRef = collection(db, 'messages')
-            // const q = query(
-            //   messagesRef,
-            //   where('userId', '==', userId),
-            //   where('read', '==', false)
-            // )
-            // const querySnapshot = await getDocs(q)
-            // return querySnapshot.size
-
-            // Mock: Retornar contagem de exemplo
-            return 2
+            const messagesRef = collection(db, 'messages')
+            const q = query(
+                messagesRef,
+                where('userId', '==', userId),
+                where('read', '==', false)
+            )
+            const querySnapshot = await getDocs(q)
+            return querySnapshot.size
         } catch (error) {
             console.error('Erro ao contar mensagens não lidas:', error)
             return 0
