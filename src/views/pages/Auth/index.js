@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Button } from '@/views/components/ui/button'
 import { Input } from '@/views/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/views/components/ui/card'
@@ -24,18 +25,26 @@ export default function AuthPage() {
         setError('')
 
         try {
-            // Mock Google login via controller
             await new Promise(resolve => setTimeout(resolve, 1000))
             const result = await AuthController.loginWithGoogle()
 
             if (result.success) {
+                toast.success('Autenticado com sucesso!', {
+                    description: `Bem-vindo, ${result.user.displayName}`,
+                })
                 localStorage.setItem('kala_user', JSON.stringify(result.user))
                 router.push('/dashboard')
             } else {
                 setError(result.error)
+                toast.error('Erro ao entrar com Google', {
+                    description: result.error
+                })
             }
         } catch (err) {
             setError('Erro ao autenticar com Google')
+            toast.error('Erro ao autenticar', {
+                description: 'Ocorreu um erro inesperado ao tentar entrar com Google.'
+            })
         } finally {
             setLoading(false)
         }
@@ -57,13 +66,22 @@ export default function AuthPage() {
             }
 
             if (result.success) {
+                toast.success(isLogin ? 'Login efetuado com sucesso!' : 'Conta criada com sucesso!', {
+                    description: isLogin ? 'Bem-vindo de volta ao KALA.' : 'A tua conta foi criada e já podes usar o KALA.',
+                })
                 localStorage.setItem('kala_user', JSON.stringify(result.user))
                 router.push('/dashboard')
             } else {
                 setError(result.error)
+                toast.error(isLogin ? 'Erro ao entrar' : 'Erro ao criar conta', {
+                    description: result.error
+                })
             }
         } catch (err) {
             setError('Erro ao autenticar')
+            toast.error('Erro ao processar pedido', {
+                description: 'Ocorreu um erro inesperado. Por favor tenta novamente.'
+            })
         } finally {
             setLoading(false)
         }

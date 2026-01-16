@@ -178,7 +178,7 @@ export default function PremiumPage() {
                                     <Button
                                         onClick={handleUpgrade}
                                         disabled={loading || user.isPremium}
-                                        className="w-full h-14 text-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+                                        className="w-full h-auto py-4 text-base md:text-lg whitespace-normal leading-tight bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
                                     >
                                         {user.isPremium ? (
                                             <>
@@ -189,7 +189,7 @@ export default function PremiumPage() {
                                             'A processar...'
                                         ) : (
                                             <>
-                                                <Crown className="w-5 h-5 mr-2" />
+                                                <Crown className="w-5 h-5 mr-2 shrink-0" />
                                                 Pagar com Multicaixa / Unitel Money
                                             </>
                                         )}
