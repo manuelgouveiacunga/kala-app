@@ -68,22 +68,22 @@ export default function ContaPage() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center">
+                            <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-pink-600 rounded-full flex items-center justify-center shrink-0">
                                 <User className="w-6 h-6 text-white" />
                             </div>
-                            <div>
+                            <div className="min-w-0">
                                 <p className="text-sm text-gray-500">Nome de utilizador</p>
-                                <p className="font-semibold">@{user.username}</p>
+                                <p className="font-semibold truncate">@{user.username}</p>
                             </div>
                         </div>
 
                         <div className="flex items-center gap-3">
-                            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center">
+                            <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center shrink-0">
                                 <Mail className="w-6 h-6 text-gray-600" />
                             </div>
-                            <div>
+                            <div className="min-w-0">
                                 <p className="text-sm text-gray-500">Email</p>
-                                <p className="font-semibold">{user.email}</p>
+                                <p className="font-semibold truncate">{user.email}</p>
                             </div>
                         </div>
 

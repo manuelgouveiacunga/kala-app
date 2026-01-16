@@ -15,7 +15,7 @@ export default function DashboardPage() {
     const [copied, setCopied] = useState(false)
 
     useEffect(() => {
-        
+
         const userData = localStorage.getItem('kala_user')
         if (!userData) {
             router.push('/auth/login')
@@ -83,11 +83,10 @@ export default function DashboardPage() {
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
-            {}
             <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
                 <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                        <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center shrink-0">
                             <MessageCircle className="w-5 h-5 text-white" />
                         </div>
                         <span className="text-xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">KALA</span>
@@ -99,13 +98,10 @@ export default function DashboardPage() {
             </header>
 
             <div className="container mx-auto px-4 py-8 max-w-4xl">
-                {}
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold mb-2">Olá, {user.displayName}! 👋</h1>
                     <p className="text-gray-600">Tens {messageCount} mensagem{messageCount !== 1 ? 's' : ''} anónima{messageCount !== 1 ? 's' : ''}</p>
                 </div>
-
-                {}
                 <Card className="mb-6 border-2 border-purple-200">
                     <CardHeader>
                         <CardTitle className="flex items-center gap-2">
@@ -130,7 +126,6 @@ export default function DashboardPage() {
                     </CardContent>
                 </Card>
 
-                {}
                 {!user.isPremium && (
                     <Card className="mb-6 border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
                         <CardHeader>
@@ -165,7 +160,6 @@ export default function DashboardPage() {
                     </Card>
                 )}
 
-                {}
                 <Card>
                     <CardHeader>
                         <CardTitle>Mensagens Recebidas</CardTitle>
@@ -190,7 +184,7 @@ export default function DashboardPage() {
                                         key={message.id}
                                         className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 border-2 border-purple-100"
                                     >
-                                        <p className="text-gray-800 mb-2">{message.text}</p>
+                                        <p className="text-gray-800 mb-2 break-words">{message.text}</p>
                                         <p className="text-xs text-gray-500">
                                             {new Date(message.timestamp).toLocaleString('pt-AO', {
                                                 day: 'numeric',

@@ -31,8 +31,8 @@ export default function LandingPage() {
         <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50">
             {/* Header */}
             <header className="border-b bg-white/80 backdrop-blur-sm sticky top-0 z-50">
-                <div className="container mx-auto px-4 py-4 flex justify-between items-center">
-                    <div className="flex items-center gap-2">
+                <div className="container mx-auto px-4 py-4 flex justify-between items-center gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                         <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
                             <MessageCircle className="w-5 h-5 text-white" />
                         </div>
@@ -54,21 +54,23 @@ export default function LandingPage() {
             </header>
 
             {/* Hero Section */}
-            <section className="container mx-auto px-4 py-16 md:py-24">
+            <section className="container mx-auto px-4 py-12 md:py-24">
                 <div className="max-w-4xl mx-auto text-center">
-                    <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                    <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent leading-tight md:leading-tight">
                         Recebe mensagens anónimas dos teus amigos
                     </h1>
-                    <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+                    <p className="text-lg md:text-xl text-gray-600 mb-8 max-w-2xl mx-auto px-4">
                         Cria o teu link pessoal e descobre o que as pessoas realmente pensam de ti. Totalmente anónimo e seguro.
                     </p>
-                    <Button
-                        size="lg"
-                        onClick={handleGetStarted}
-                        className="bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-6 text-lg h-auto hover:shadow-lg transition-all"
-                    >
-                        Criar meu link grátis
-                    </Button>
+                    <div className="flex flex-col sm:flex-row justify-center gap-4 px-4 sm:px-0">
+                        <Button
+                            size="lg"
+                            onClick={handleGetStarted}
+                            className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-6 text-lg h-auto hover:shadow-lg transition-all"
+                        >
+                            Criar meu link grátis
+                        </Button>
+                    </div>
                     <p className="text-sm text-gray-500 mt-4">Sem cartão de crédito. Começa em 30 segundos.</p>
                 </div>
             </section>
@@ -139,13 +141,15 @@ export default function LandingPage() {
                 <div className="max-w-3xl mx-auto text-center bg-gradient-to-br from-purple-600 to-pink-600 rounded-2xl p-8 md:p-12 text-white">
                     <h2 className="text-3xl md:text-4xl font-bold mb-4">Pronto para começar?</h2>
                     <p className="text-lg mb-6 opacity-90">Junta-te a milhares de angolanos que já usam KALA</p>
-                    <Button
-                        size="lg"
-                        onClick={handleGetStarted}
-                        className="bg-white text-purple-600 hover:bg-gray-100 px-8 py-6 text-lg h-auto font-bold"
-                    >
-                        Criar meu link agora
-                    </Button>
+                    <div className="flex flex-col sm:flex-row justify-center gap-4">
+                        <Button
+                            size="lg"
+                            onClick={handleGetStarted}
+                            className="w-full sm:w-auto bg-white text-purple-600 hover:bg-gray-100 px-8 py-6 text-lg h-auto font-bold"
+                        >
+                            Criar meu link agora
+                        </Button>
+                    </div>
                 </div>
             </section>
 
