@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/vie
 import { Label } from '@/views/components/ui/label'
 import { MessageCircle } from 'lucide-react'
 import AuthController from '@/controllers/authController'
+import { isValidEmail, isValidPassword } from '@/utils/validation'
 import { FcGoogle } from 'react-icons/fc'
 
 export default function AuthPage() {
@@ -19,6 +20,46 @@ export default function AuthPage() {
     const [username, setUsername] = useState('')
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState('')
+    const [emailError, setEmailError] = useState('')
+    const [passwordError, setPasswordError] = useState('')
+
+    const validateEmail = (value) => {
+        if (!value) {
+            setEmailError('O email é obrigatório')
+            return false
+        }
+        if (!isValidEmail(value)) {
+            setEmailError('Insere um email válido')
+            return false
+        }
+        setEmailError('')
+        return true
+    }
+
+    const validatePassword = (value) => {
+        if (!value) {
+            setPasswordError('A palavra-passe é obrigatória')
+            return false
+        }
+        if (!isValidPassword(value)) {
+            setPasswordError('A palavra-passe deve ter pelo menos 6 caracteres')
+            return false
+        }
+        setPasswordError('')
+        return true
+    }
+
+    const handleEmailChange = (e) => {
+        const value = e.target.value
+        setEmail(value)
+        if (emailError) validateEmail(value)
+    }
+
+    const handlePasswordChange = (e) => {
+        const value = e.target.value
+        setPassword(value)
+        if (passwordError) validatePassword(value)
+    }
 
     const handleGoogleAuth = async () => {
         setLoading(true)
@@ -52,6 +93,14 @@ export default function AuthPage() {
 
     const handleEmailAuth = async (e) => {
         e.preventDefault()
+
+        const isEmailValid = validateEmail(email)
+        const isPasswordValid = validatePassword(password)
+
+        if (!isEmailValid || !isPasswordValid) {
+            return
+        }
+
         setLoading(true)
         setError('')
 
@@ -137,12 +186,12 @@ export default function AuthPage() {
                                 <Label htmlFor="username">Nome de utilizador</Label>
                                 <Input
                                     id="username"
-                                    placeholder="seutexto"
+                                    placeholder="Nome de utilizador"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
                                     required={!isLogin}
                                 />
-                                <p className="text-xs text-gray-500">Teu link será: kala.ao/m/{username || 'seutexto'}</p>
+                                <p className="text-xs text-gray-500">Teu link será: kala.ao/m/{username || 'nome-de-utilizador'}</p>
                             </div>
                         )}
 
@@ -151,11 +200,14 @@ export default function AuthPage() {
                             <Input
                                 id="email"
                                 type="email"
-                                placeholder="teu@email.com"
+                                placeholder="Email"
                                 value={email}
-                                onChange={(e) => setEmail(e.target.value)}
+                                onChange={handleEmailChange}
+                                onBlur={() => validateEmail(email)}
+                                className={emailError ? "border-red-500 focus-visible:ring-red-500" : ""}
                                 required
                             />
+                            {emailError && <p className="text-xs text-red-500 font-medium">{emailError}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -163,11 +215,14 @@ export default function AuthPage() {
                             <Input
                                 id="password"
                                 type="password"
-                                placeholder="••••••••"
+                                placeholder="Palavra-passe"
                                 value={password}
-                                onChange={(e) => setPassword(e.target.value)}
+                                onChange={handlePasswordChange}
+                                onBlur={() => validatePassword(password)}
+                                className={passwordError ? "border-red-500 focus-visible:ring-red-500" : ""}
                                 required
                             />
+                            {passwordError && <p className="text-xs text-red-500 font-medium">{passwordError}</p>}
                         </div>
 
                         <Button
