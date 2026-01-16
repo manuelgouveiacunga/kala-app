@@ -1,4 +1,5 @@
 import '@/views/styles/globals.css'
+import { Toaster } from '@/views/components/ui/sonner'
 
 export const metadata = {
   title: 'KALA - Mensagens Anónimas',
@@ -10,6 +11,7 @@ export default function RootLayout({ children }) {
     <html lang="pt-AO">
       <body>
         {children}
+        <Toaster />
       </body>
     </html>
   )
