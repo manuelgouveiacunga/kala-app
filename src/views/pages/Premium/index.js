@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
 import { Button } from '@/views/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/views/components/ui/card'
 import { MessageCircle, Crown, Check, Zap, Shield, Star } from 'lucide-react'
@@ -23,13 +24,50 @@ export default function PremiumPage() {
 
     const handleUpgrade = async () => {
         setLoading(true)
-
-        // Using PaymentController mock
         const result = await PaymentController.createPayment(user.uid)
 
         if (result.success) {
-            // Mock payment flow
-            alert('Integração de pagamento será adicionada em breve.\n\nSerá possível pagar com:\n- Multicaixa Express\n- Unitel Money\n\nValor: 3.000 Kz/mês')
+            toast.custom((t) => (
+                <div className="bg-white border border-gray-100 rounded-2xl shadow-xl p-5 w-full max-w-md relative overflow-hidden animate-in fade-in slide-in-from-bottom-5">
+                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 to-orange-500" />
+
+                    <div className="flex gap-4">
+                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-yellow-100 to-orange-100 flex items-center justify-center shrink-0 border border-yellow-200">
+                            <Crown className="w-6 h-6 text-yellow-600" />
+                        </div>
+
+                        <div className="flex-1 space-y-3">
+                            <div>
+                                <h3 className="font-bold text-gray-900 text-lg">Pagamentos em Breve</h3>
+                                <p className="text-sm text-gray-500 leading-relaxed">
+                                    A integração de pagamentos está a ser finalizada.
+                                </p>
+                            </div>
+
+                            <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 space-y-2">
+                                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Será possível pagar com</p>
+                                <div className="space-y-1.5">
+                                    <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+                                        <div className="w-2 h-2 rounded-full bg-blue-500 ring-2 ring-blue-100" />
+                                        Multicaixa Express
+                                    </div>
+                                    <div className="flex items-center gap-2.5 text-sm font-medium text-gray-700">
+                                        <div className="w-2 h-2 rounded-full bg-orange-500 ring-2 ring-orange-100" />
+                                        Unitel Money
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex items-center justify-between pt-1">
+                                <span className="text-sm font-medium text-gray-500">Valor Mensal</span>
+                                <span className="text-lg font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                                    3.000 Kz
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            ), { duration: 6000 })
         }
 
         setLoading(false)
@@ -140,7 +178,7 @@ export default function PremiumPage() {
                                     <Button
                                         onClick={handleUpgrade}
                                         disabled={loading || user.isPremium}
-                                        className="w-full h-14 text-lg bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
+                                        className="w-full h-auto py-4 text-base md:text-lg whitespace-normal leading-tight bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600"
                                     >
                                         {user.isPremium ? (
                                             <>
@@ -151,7 +189,7 @@ export default function PremiumPage() {
                                             'A processar...'
                                         ) : (
                                             <>
-                                                <Crown className="w-5 h-5 mr-2" />
+                                                <Crown className="w-5 h-5 mr-2 shrink-0" />
                                                 Pagar com Multicaixa / Unitel Money
                                             </>
                                         )}
