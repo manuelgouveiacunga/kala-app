@@ -25,7 +25,7 @@ export default function ContaPage() {
         if (confirm('Tens certeza que queres sair?')) {
             await AuthController.logout()
             localStorage.removeItem('kala_user')
-            router.push('/auth/login')
+            window.location.href = '/auth/login'
         }
     }
 
