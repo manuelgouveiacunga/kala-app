@@ -1,8 +1,3 @@
-/**
- * User Model
- * Estrutura de dados e validações para utilizadores
- */
-
 export class User {
     constructor(data = {}) {
         this.uid = data.uid || null
@@ -13,59 +8,45 @@ export class User {
         this.messageCount = data.messageCount || 0
         this.createdAt = data.createdAt || new Date().toISOString()
         this.updatedAt = data.updatedAt || new Date().toISOString()
+        this.linkConfig = data.linkConfig || {
+            token: null,
+            expiresAt: null,
+            createdAt: null
+        }
     }
 
-    /**
-     * Valida se o username é válido
-     */
     static isValidUsername(username) {
         if (!username || typeof username !== 'string') return false
 
-        // Username deve ter entre 3 e 20 caracteres
         if (username.length < 3 || username.length > 20) return false
 
-        // Apenas letras, números e underscore
+        
         const usernameRegex = /^[a-zA-Z0-9_]+$/
         return usernameRegex.test(username)
     }
 
-    /**
-     * Valida se o email é válido
-     */
     static isValidEmail(email) {
         if (!email || typeof email !== 'string') return false
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         return emailRegex.test(email)
     }
-
-    /**
-     * Verifica se o utilizador atingiu o limite de mensagens
-     */
+    
     hasReachedMessageLimit() {
         if (this.isPremium) return false
         return this.messageCount >= 80
     }
-
-    /**
-     * Incrementa o contador de mensagens
-     */
+    
     incrementMessageCount() {
         this.messageCount += 1
         this.updatedAt = new Date().toISOString()
     }
 
-    /**
-     * Atualiza para premium
-     */
     upgradeToPremium() {
         this.isPremium = true
         this.updatedAt = new Date().toISOString()
     }
 
-    /**
-     * Converte para objeto simples (para armazenamento)
-     */
     toJSON() {
         return {
             uid: this.uid,
@@ -75,16 +56,38 @@ export class User {
             isPremium: this.isPremium,
             messageCount: this.messageCount,
             createdAt: this.createdAt,
-            updatedAt: this.updatedAt
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt,
+            linkConfig: this.linkConfig
         }
     }
 
-    /**
-     * Cria instância a partir de dados do Firestore
-     */
     static fromFirestore(doc) {
         if (!doc.exists()) return null
         return new User({ uid: doc.id, ...doc.data() })
+    }
+
+    hasActiveLink(token = null) {
+        if (!this.linkConfig || !this.linkConfig.token || !this.linkConfig.expiresAt) {
+            return false
+        }
+
+        const now = new Date().getTime()
+        const expiresAt = new Date(this.linkConfig.expiresAt).getTime()
+        const isActive = now < expiresAt
+
+        if (token) {
+            return isActive && this.linkConfig.token === token
+        }
+
+        return isActive
+    }
+
+    getLinkTimeRemaining() {
+        if (!this.hasActiveLink()) return 0
+        const now = new Date().getTime()
+        const expiresAt = new Date(this.linkConfig.expiresAt).getTime()
+        return Math.max(0, expiresAt - now)
     }
 }
 
