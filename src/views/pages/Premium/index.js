@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button } from '@/views/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/views/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/views/components/ui/card'
 import { MessageCircle, Crown, Check, Zap, Shield, Star, X, Phone, CreditCard, Smartphone } from 'lucide-react'
 import PaymentController from '@/controllers/paymentController'
 
