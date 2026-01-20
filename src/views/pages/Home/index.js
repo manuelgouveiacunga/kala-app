@@ -5,26 +5,64 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/views/components/ui/button'
 import { Card } from '@/views/components/ui/card'
 import { MessageCircle, Shield, Zap } from 'lucide-react'
-import ROUTES from '@/utils/constants'
 
 export default function LandingPage() {
     const router = useRouter()
     const [isLoggedIn, setIsLoggedIn] = useState(false)
+    const [isLoading, setIsLoading] = useState(false)
+    const [actionType, setActionType] = useState(null)
 
     useEffect(() => {
-        // Check if user is logged in
         const user = localStorage.getItem('kala_user')
         if (user) {
             setIsLoggedIn(true)
         }
     }, [])
 
+    const getCurrentYear = () => new Date().getFullYear();
+
+    const handleNavigation = (path, action) => {
+        setActionType(action)
+        setIsLoading(true)
+        setTimeout(() => {
+            router.push(path)
+        }, 150)
+    }
+
     const handleGetStarted = () => {
         if (isLoggedIn) {
-            router.push('/dashboard')
+            handleNavigation('/dashboard', 'dashboard')
         } else {
-            router.push('/auth/login')
+            handleNavigation('/auth/login', 'signup')
         }
+    }
+
+    const handleLogin = () => {
+        handleNavigation('/auth/login', 'login')
+    }
+
+    const handleSignup = () => {
+        handleNavigation('/auth/login', 'signup')
+    }
+
+    const handleDashboard = () => {
+        handleNavigation('/dashboard', 'dashboard')
+    }
+
+    const Spinner = ({ color = 'white', size = 'sm' }) => {
+        const sizeClasses = {
+            sm: 'w-4 h-4',
+            md: 'w-5 h-5',
+            lg: 'w-6 h-6'
+        }
+        
+        const borderColor = color === 'white' 
+            ? 'border-white/30 border-t-white' 
+            : 'border-purple-300 border-t-purple-600'
+        
+        return (
+            <div className={`${sizeClasses[size]} border-2 ${borderColor} rounded-full animate-spin mr-2`}></div>
+        )
     }
 
     return (
@@ -40,13 +78,51 @@ export default function LandingPage() {
                     </div>
                     <div className="flex gap-2">
                         {isLoggedIn ? (
-                            <Button onClick={() => router.push('/dashboard')} className="bg-gradient-to-r from-purple-600 to-pink-600">
-                                Meu Dashboard
+                            <Button 
+                                onClick={handleDashboard}
+                                className="bg-gradient-to-r from-purple-600 to-pink-600 min-w-[120px]"
+                                disabled={isLoading}
+                            >
+                                {isLoading && actionType === 'dashboard' ? (
+                                    <div className="flex items-center justify-center">
+                                        <Spinner size="sm" />
+                                        <span>A carregar...</span>
+                                    </div>
+                                ) : (
+                                    'Meu Dashboard'
+                                )}
                             </Button>
                         ) : (
                             <>
-                                <Button variant="ghost" onClick={() => router.push('/auth/login')}>Entrar</Button>
-                                <Button onClick={() => router.push('/auth/login')} className="bg-gradient-to-r from-purple-600 to-pink-600">Criar Conta</Button>
+                                <Button 
+                                    variant="ghost" 
+                                    onClick={handleLogin}
+                                    disabled={isLoading}
+                                    className="min-w-[80px]"
+                                >
+                                    {isLoading && actionType === 'login' ? (
+                                        <div className="flex items-center justify-center">
+                                            <Spinner color="purple" size="sm" />
+                                            <span>Entrando...</span>
+                                        </div>
+                                    ) : (
+                                        'Entrar'
+                                    )}
+                                </Button>
+                                <Button 
+                                    onClick={handleSignup}
+                                    className="bg-gradient-to-r from-purple-600 to-pink-600 min-w-[120px]"
+                                    disabled={isLoading}
+                                >
+                                    {isLoading && actionType === 'signup' ? (
+                                        <div className="flex items-center justify-center">
+                                            <Spinner size="sm" />
+                                            <span>Criando conta...</span>
+                                        </div>
+                                    ) : (
+                                        'Criar Conta'
+                                    )}
+                                </Button>
                             </>
                         )}
                     </div>
@@ -67,8 +143,16 @@ export default function LandingPage() {
                             size="lg"
                             onClick={handleGetStarted}
                             className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 text-white px-8 py-6 text-lg h-auto hover:shadow-lg transition-all"
+                            disabled={isLoading}
                         >
-                            Criar meu link grátis
+                            {isLoading && actionType === 'signup' ? (
+                                <div className="flex items-center justify-center">
+                                    <Spinner size="md" />
+                                    <span>A preparar...</span>
+                                </div>
+                            ) : (
+                                'Criar meu link grátis'
+                            )}
                         </Button>
                     </div>
                     <p className="text-sm text-gray-500 mt-4">Sem cartão de crédito. Começa em 30 segundos.</p>
@@ -146,8 +230,16 @@ export default function LandingPage() {
                             size="lg"
                             onClick={handleGetStarted}
                             className="w-full sm:w-auto bg-white text-purple-600 hover:bg-gray-100 px-8 py-6 text-lg h-auto font-bold"
+                            disabled={isLoading}
                         >
-                            Criar meu link agora
+                            {isLoading && actionType === 'signup' ? (
+                                <div className="flex items-center justify-center">
+                                    <Spinner color="purple" size="md" />
+                                    <span>A preparar...</span>
+                                </div>
+                            ) : (
+                                'Criar meu link agora'
+                            )}
                         </Button>
                     </div>
                 </div>
@@ -156,7 +248,8 @@ export default function LandingPage() {
             {/* Footer */}
             <footer className="border-t bg-gray-50 py-8">
                 <div className="container mx-auto px-4 text-center text-gray-600">
-                    <p>© 2025 KALA. Feito em Angola 🇦🇴</p>
+                    <p>© {new Date().getFullYear()} KALA. Todos os direitos reservados.</p>
+                    <p>Desenvolvido por <a href="https://github.com/manuelgouveiacunga" target="_blank" rel="noopener noreferrer" className="hover:text-purple-600 transition-colors">Manuel Gouveia Cunga</a></p>
                 </div>
             </footer>
         </div>
