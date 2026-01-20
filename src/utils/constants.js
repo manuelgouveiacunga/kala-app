@@ -71,7 +71,7 @@ export const SUCCESS_MESSAGES = {
     ACCOUNT_CREATED: 'Conta criada com sucesso!',
     LOGIN_SUCCESS: 'Login efetuado com sucesso!',
     PROFILE_UPDATED: 'Perfil atualizado com sucesso!',
-    PAYMENT_SUCCESS: 'Pagamento efetuado com sucesso! Bem-vindo ao Premium! 🌟'
+    PAYMENT_SUCCESS: 'Pagamento efetuado com sucesso! Bem-vindo ao Premium!'
 }
 
 export const LOCALE = {
