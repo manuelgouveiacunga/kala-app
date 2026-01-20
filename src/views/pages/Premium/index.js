@@ -48,7 +48,6 @@ export default function PremiumPage() {
         setShowPaymentModal(false)
     }
 
-    // Close modal on escape key
     useEffect(() => {
         const handleEscape = (e) => {
             if (e.key === 'Escape') {
