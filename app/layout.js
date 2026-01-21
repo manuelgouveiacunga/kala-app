@@ -1,5 +1,6 @@
 import '@/views/styles/globals.css'
 import { Toaster } from '@/views/components/ui/sonner'
+import { Analytics } from '@vercel/analytics/next'
 
 export const metadata = {
   title: 'KALA - Mensagens Anónimas',
@@ -11,6 +12,7 @@ export default function RootLayout({ children }) {
     <html lang="pt-AO">
       <body>
         {children}
+        <Analytics />
         <Toaster />
       </body>
     </html>
