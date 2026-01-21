@@ -12,6 +12,7 @@ export default function RootLayout({ children }) {
     <html lang="pt-AO">
       <body>
         {children}
+        <Analytics />
         <Toaster />
         <Analytics />
       </body>
