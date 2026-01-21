@@ -9,6 +9,7 @@ import { Progress } from '@/views/components/ui/progress'
 import MessageController from '@/controllers/messageController'
 import UserController from '@/controllers/userController'
 import User from '@/models/User'
+import { generateMessageImage } from '@/utils/shareMessageImage'
 
 export default function DashboardPage() {
     const router = useRouter()
@@ -17,6 +18,7 @@ export default function DashboardPage() {
     const [copied, setCopied] = useState(false)
     const [generatingLink, setGeneratingLink] = useState(false)
     const [timeLeft, setTimeLeft] = useState('')
+    const [sharingId, setSharingId] = useState(null)
 
     useEffect(() => {
         const loadData = async () => {
@@ -129,25 +131,31 @@ export default function DashboardPage() {
         }
     }
 
-    const shareMessage = async (messageText) => {
-        const link = getLinkUrl()
-        const fullText = `"${messageText}"\n\nEnvia-me também uma mensagem anónima aqui: ${link}\n\n#KALA #MensagensAnonimas`
+    const handleShareMessage = async (message) => {
+        setSharingId(message.id)
+        try {
+            const imageFile = await generateMessageImage(message.text)
 
-        if (navigator.share) {
-            try {
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [imageFile] })) {
                 await navigator.share({
+                    files: [imageFile],
                     title: 'KALA - Mensagem Anónima',
-                    text: fullText,
                 })
-            } catch (err) {
-                navigator.clipboard.writeText(fullText)
-                setCopied(true)
-                setTimeout(() => setCopied(false), 2000)
+            } else {
+                // Fallback: Download the image
+                const url = URL.createObjectURL(imageFile)
+                const link = document.createElement('a')
+                link.href = url
+                link.download = `kala-mensagem-${message.id}.png`
+                document.body.appendChild(link)
+                link.click()
+                document.body.removeChild(link)
+                URL.revokeObjectURL(url)
             }
-        } else {
-            navigator.clipboard.writeText(fullText)
-            setCopied(true)
-            setTimeout(() => setCopied(false), 2000)
+        } catch (error) {
+            console.error('Erro ao partilhar mensagem:', error)
+        } finally {
+            setSharingId(null)
         }
     }
 
@@ -341,25 +349,32 @@ export default function DashboardPage() {
                                         key={message.id}
                                         className="bg-white hover:bg-purple-50 transition-colors rounded-xl p-4 border border-purple-100 shadow-sm group"
                                     >
-                                        <div className="flex justify-between items-start gap-4 mb-2">
-                                            <p className="text-gray-800 break-words text-sm sm:text-base leading-relaxed flex-1">{message.text}</p>
+                                        <div className="flex justify-between items-start gap-4">
+                                            <div className="flex-1">
+                                                <p className="text-gray-800 mb-2 break-words text-sm sm:text-base leading-relaxed">{message.text}</p>
+                                                <p className="text-[10px] sm:text-xs text-gray-400 font-medium">
+                                                    {new Date(message.timestamp).toLocaleString('pt-AO', {
+                                                        day: 'numeric',
+                                                        month: 'short',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    })}
+                                                </p>
+                                            </div>
                                             <Button
                                                 variant="ghost"
                                                 size="icon"
-                                                className="shrink-0 h-8 w-8 text-purple-600 hover:text-purple-700 hover:bg-purple-100 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity"
-                                                onClick={() => shareMessage(message.text)}
+                                                className="shrink-0 h-8 w-8 text-purple-600 hover:text-purple-700 hover:bg-purple-100"
+                                                onClick={() => handleShareMessage(message)}
+                                                disabled={sharingId === message.id}
                                             >
-                                                <Share2 className="w-4 h-4" />
+                                                {sharingId === message.id ? (
+                                                    <RefreshCw className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    <Share2 className="w-4 h-4" />
+                                                )}
                                             </Button>
                                         </div>
-                                        <p className="text-[10px] sm:text-xs text-gray-400 font-medium">
-                                            {new Date(message.timestamp).toLocaleString('pt-AO', {
-                                                day: 'numeric',
-                                                month: 'short',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </p>
                                     </div>
                                 ))}
                             </div>
