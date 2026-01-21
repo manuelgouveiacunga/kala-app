@@ -9,6 +9,7 @@ import { Progress } from '@/views/components/ui/progress'
 import MessageController from '@/controllers/messageController'
 import UserController from '@/controllers/userController'
 import User from '@/models/User'
+import { generateMessageImage } from '@/utils/shareMessageImage'
 
 export default function DashboardPage() {
     const router = useRouter()
@@ -17,6 +18,7 @@ export default function DashboardPage() {
     const [copied, setCopied] = useState(false)
     const [generatingLink, setGeneratingLink] = useState(false)
     const [timeLeft, setTimeLeft] = useState('')
+    const [sharingId, setSharingId] = useState(null)
 
     useEffect(() => {
         const loadData = async () => {
@@ -126,6 +128,34 @@ export default function DashboardPage() {
             }
         } else {
             copyLink()
+        }
+    }
+
+    const handleShareMessage = async (message) => {
+        setSharingId(message.id)
+        try {
+            const imageFile = await generateMessageImage(message.text)
+
+            if (navigator.share && navigator.canShare && navigator.canShare({ files: [imageFile] })) {
+                await navigator.share({
+                    files: [imageFile],
+                    title: 'KALA - Mensagem Anónima',
+                })
+            } else {
+                // Fallback: Download the image
+                const url = URL.createObjectURL(imageFile)
+                const link = document.createElement('a')
+                link.href = url
+                link.download = `kala-mensagem-${message.id}.png`
+                document.body.appendChild(link)
+                link.click()
+                document.body.removeChild(link)
+                URL.revokeObjectURL(url)
+            }
+        } catch (error) {
+            console.error('Erro ao partilhar mensagem:', error)
+        } finally {
+            setSharingId(null)
         }
     }
 
@@ -317,17 +347,34 @@ export default function DashboardPage() {
                                 {messages.map((message) => (
                                     <div
                                         key={message.id}
-                                        className="bg-white hover:bg-purple-50 transition-colors rounded-xl p-4 border border-purple-100 shadow-sm"
+                                        className="bg-white hover:bg-purple-50 transition-colors rounded-xl p-4 border border-purple-100 shadow-sm group"
                                     >
-                                        <p className="text-gray-800 mb-2 break-words text-sm sm:text-base leading-relaxed">{message.text}</p>
-                                        <p className="text-[10px] sm:text-xs text-gray-400 font-medium">
-                                            {new Date(message.timestamp).toLocaleString('pt-AO', {
-                                                day: 'numeric',
-                                                month: 'short',
-                                                hour: '2-digit',
-                                                minute: '2-digit'
-                                            })}
-                                        </p>
+                                        <div className="flex justify-between items-start gap-4">
+                                            <div className="flex-1">
+                                                <p className="text-gray-800 mb-2 break-words text-sm sm:text-base leading-relaxed">{message.text}</p>
+                                                <p className="text-[10px] sm:text-xs text-gray-400 font-medium">
+                                                    {new Date(message.timestamp).toLocaleString('pt-AO', {
+                                                        day: 'numeric',
+                                                        month: 'short',
+                                                        hour: '2-digit',
+                                                        minute: '2-digit'
+                                                    })}
+                                                </p>
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                className="shrink-0 h-8 w-8 text-purple-600 hover:text-purple-700 hover:bg-purple-100"
+                                                onClick={() => handleShareMessage(message)}
+                                                disabled={sharingId === message.id}
+                                            >
+                                                {sharingId === message.id ? (
+                                                    <RefreshCw className="w-4 h-4 animate-spin" />
+                                                ) : (
+                                                    <Share2 className="w-4 h-4" />
+                                                )}
+                                            </Button>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
