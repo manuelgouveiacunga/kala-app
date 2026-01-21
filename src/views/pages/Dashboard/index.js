@@ -195,56 +195,56 @@ export default function DashboardPage() {
                     <p className="text-gray-600">Tens {messageCount} mensagem{messageCount !== 1 ? 's' : ''} anónima{messageCount !== 1 ? 's' : ''}</p>
                 </div>
 
-                <Card className="mb-6 border-2 border-purple-200 shadow-sm">
-                    <CardHeader className="pb-3">
+                <Card className="mb-6 border-2 border-purple-200 shadow-sm overflow-hidden">
+                    <CardHeader className="p-4 sm:p-6 pb-3">
                         <CardTitle className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                             <div className="flex items-center gap-2">
-                                <Share2 className="w-5 h-5 text-purple-600" />
-                                <span>Teu Link Pessoal</span>
+                                <Share2 className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600" />
+                                <span className="text-base sm:text-lg">Teu Link Pessoal</span>
                             </div>
                             {hasActiveLink && (
-                                <div className="flex items-center text-xs sm:text-sm font-medium text-purple-600 bg-purple-50 px-3 py-1.5 rounded-full w-fit">
+                                <div className="flex items-center text-[10px] sm:text-sm font-medium text-purple-600 bg-purple-50 px-2.5 py-1 sm:px-3 sm:py-1.5 rounded-full w-fit">
                                     <Clock className="w-3 h-3 sm:w-4 sm:h-4 mr-1.5" />
                                     Expira em: <span className="ml-1 font-bold">{timeLeft}</span>
                                 </div>
                             )}
                         </CardTitle>
-                        <CardDescription className="text-sm">
+                        <CardDescription className="text-[11px] sm:text-sm">
                             {hasActiveLink
                                 ? "Partilha este link para receber mensagens"
                                 : "Gera um novo link para começares a receber mensagens"}
                         </CardDescription>
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="p-4 sm:p-6 pt-0 space-y-4">
                         {hasActiveLink ? (
                             <>
                                 <div className="flex flex-col sm:flex-row gap-2">
-                                    <div className="flex-1 bg-gray-100 rounded-lg px-3 py-3 font-mono text-xs sm:text-sm break-all border border-gray-200">
+                                    <div className="flex-1 bg-gray-100 rounded-lg px-3 py-2.5 sm:py-3 font-mono text-[10px] xs:text-xs sm:text-sm break-all border border-gray-200">
                                         {linkUrl}
                                     </div>
-                                    <Button onClick={copyLink} variant="outline" className="shrink-0 h-10 sm:h-auto w-full sm:w-auto">
+                                    <Button onClick={copyLink} variant="outline" className="shrink-0 h-9 sm:h-auto w-full sm:w-auto text-xs sm:text-sm">
                                         {copied ? (
                                             <>
                                                 <Check className="w-4 h-4 mr-2" />
-                                                <span className="sm:hidden">Copiado!</span>
+                                                <span>Copiado!</span>
                                             </>
                                         ) : (
                                             <>
                                                 <Copy className="w-4 h-4 mr-2" />
-                                                <span className="sm:hidden">Copiar</span>
+                                                <span>Copiar</span>
                                             </>
                                         )}
                                     </Button>
                                 </div>
-                                <div className="flex flex-col sm:flex-row gap-3">
-                                    <Button onClick={shareLink} className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 h-11">
+                                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                                    <Button onClick={shareLink} className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 h-10 sm:h-11 text-xs sm:text-base">
                                         <Share2 className="w-4 h-4 mr-2" />
                                         Partilhar
                                     </Button>
                                     <Button
                                         onClick={handleGenerateLink}
                                         variant="outline"
-                                        className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 h-11"
+                                        className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 h-10 sm:h-11 text-xs sm:text-base"
                                         disabled={generatingLink}
                                     >
                                         <RefreshCw className={`w-4 h-4 mr-2 ${generatingLink ? 'animate-spin' : ''}`} />
@@ -253,12 +253,12 @@ export default function DashboardPage() {
                                 </div>
                             </>
                         ) : (
-                            <div className="text-center py-6 sm:py-8">
-                                <div className="w-14 h-14 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                    <Share2 className="w-7 h-7 sm:w-8 sm:h-8 text-gray-400" />
+                            <div className="text-center py-4 sm:py-8">
+                                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                                    <Share2 className="w-6 h-6 sm:w-8 sm:h-8 text-gray-400" />
                                 </div>
-                                <h3 className="text-lg font-semibold mb-2">Sem link ativo</h3>
-                                <p className="text-sm text-gray-500 mb-6 max-w-sm mx-auto px-4">
+                                <h3 className="text-base sm:text-lg font-semibold mb-1 sm:mb-2">Sem link ativo</h3>
+                                <p className="text-[11px] sm:text-sm text-gray-500 mb-4 sm:mb-6 max-w-sm mx-auto px-4">
                                     Gera um link temporário partilhável. Por segurança, expira em 48h.
                                 </p>
                                 <Button
@@ -284,32 +284,32 @@ export default function DashboardPage() {
                 </Card>
 
                 {!user.isPremium && (
-                    <Card className="mb-6 border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50">
-                        <CardHeader className="pb-3">
-                            <CardTitle className="flex items-center justify-between text-lg">
+                    <Card className="mb-6 border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-pink-50 overflow-hidden">
+                        <CardHeader className="p-4 sm:p-6 pb-3">
+                            <CardTitle className="flex items-center justify-between text-base sm:text-lg">
                                 <span>Limite de Mensagens</span>
-                                {user.isPremium && <Crown className="w-5 h-5 text-yellow-500" />}
+                                {user.isPremium && <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-yellow-500" />}
                             </CardTitle>
-                            <CardDescription className="text-xs sm:text-sm">
+                            <CardDescription className="text-[10px] xs:text-xs sm:text-sm">
                                 {user.isPremium ? 'Mensagens ilimitadas' : `${messageCount} / ${messageLimit} mensagens`}
                             </CardDescription>
                         </CardHeader>
-                        <CardContent className="space-y-4">
-                            <Progress value={progress} className="h-2.5" />
+                        <CardContent className="p-4 sm:p-6 pt-0 space-y-4">
+                            <Progress value={progress} className="h-2" />
                             {!user.isPremium && (
-                                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-4 border border-purple-100 shadow-sm">
-                                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 mb-3">
-                                        <div className="p-2 bg-yellow-100 rounded-full shrink-0">
-                                            <Crown className="w-4 h-4 text-yellow-600" />
+                                <div className="bg-white/80 backdrop-blur-sm rounded-lg p-3 sm:p-4 border border-purple-100 shadow-sm">
+                                    <div className="flex items-start gap-2 sm:gap-3 mb-3">
+                                        <div className="p-1.5 sm:p-2 bg-yellow-100 rounded-full shrink-0">
+                                            <Crown className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-yellow-600" />
                                         </div>
-                                        <div>
-                                            <p className="font-semibold text-sm">Fica Premium!</p>
-                                            <p className="text-xs text-gray-600 mt-0.5">Recebe mensagens ilimitadas por apenas 3.000 Kz/mês</p>
+                                        <div className="min-w-0">
+                                            <p className="font-bold text-xs sm:text-sm text-gray-900 leading-tight">Fica Premium!</p>
+                                            <p className="text-[10px] sm:text-xs text-gray-600 mt-0.5 leading-snug">Recebe mensagens ilimitadas por 3.000 Kz/mês</p>
                                         </div>
                                     </div>
                                     <Button
                                         onClick={() => router.push('/premium')}
-                                        className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 h-10 text-sm"
+                                        className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-600 hover:to-orange-600 h-9 sm:h-10 text-[11px] sm:text-sm font-semibold"
                                     >
                                         Ver Plano Premium
                                     </Button>
@@ -323,7 +323,7 @@ export default function DashboardPage() {
                     <CardHeader>
                         <CardTitle className="text-xl">Mensagens Recebidas</CardTitle>
                         <CardDescription>
-                            {messageCount === 0 ? 'Ainda não recebeste mensagens' : `${messageCount} mensagem{messageCount !== 1 ? 's' : ''}`}
+                            {messageCount === 0 ? 'Ainda não recebeste mensagens' : `${messageCount} mensagem${messageCount !== 1 ? 's' : ''}`}
                         </CardDescription>
                     </CardHeader>
                     <CardContent>

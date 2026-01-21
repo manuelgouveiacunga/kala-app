@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { Button } from '@/views/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/views/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/views/components/ui/card'
 import { MessageCircle, Crown, Check, Zap, Shield, Star, X, Phone, CreditCard, Smartphone } from 'lucide-react'
 import PaymentController from '@/controllers/paymentController'
 
@@ -48,7 +48,6 @@ export default function PremiumPage() {
         setShowPaymentModal(false)
     }
 
-    // Close modal on escape key
     useEffect(() => {
         const handleEscape = (e) => {
             if (e.key === 'Escape') {
