@@ -6,7 +6,7 @@ import { Button } from '@/views/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/views/components/ui/card'
 import { MessageCircle, Crown, LogOut, User, Mail, X } from 'lucide-react'
 import { Alert, AlertDescription } from '@/views/components/ui/alert'
-import AuthController from '@/controllers/authController'
+import authApi from '@/services/api/authApi'
 
 export default function ContaPage() {
     const router = useRouter()
@@ -30,7 +30,7 @@ export default function ContaPage() {
     const confirmLogout = async () => {
         setIsLoggingOut(true)
         try {
-            await AuthController.logout()
+            await authApi.logout()
             localStorage.removeItem('kala_user')
             window.location.href = '/auth/login'
         } catch (error) {

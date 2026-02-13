@@ -7,8 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/vie
 import { Textarea } from '@/views/components/ui/textarea'
 import { MessageCircle, Send, ShieldCheck, AlertCircle } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/views/components/ui/alert'
-import MessageController from '@/controllers/messageController'
-import UserController from '@/controllers/userController'
+import messageApi from '@/services/api/messageApi'
+import userApi from '@/services/api/userApi'
 import User from '@/models/User'
 
 export default function SendMessagePage() {
@@ -30,7 +30,7 @@ export default function SendMessagePage() {
             if (!username) return
 
             try {
-                const result = await UserController.getUserByUsername(username)
+                const result = await userApi.getByUsername(username)
 
                 if (!result.success) {
                     setPageStatus('invalid')
@@ -80,7 +80,7 @@ export default function SendMessagePage() {
         try {
             await new Promise(resolve => setTimeout(resolve, 1000))
 
-            const result = await MessageController.sendMessage({ username, text: message })
+            const result = await messageApi.send({ username, text: message })
 
             if (result.success) {
                 setSent(true)

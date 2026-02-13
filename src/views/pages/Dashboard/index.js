@@ -6,8 +6,8 @@ import { Button } from '@/views/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/views/components/ui/card'
 import { MessageCircle, Copy, Check, Crown, Share2, Settings, RefreshCw, Clock } from 'lucide-react'
 import { Progress } from '@/views/components/ui/progress'
-import MessageController from '@/controllers/messageController'
-import UserController from '@/controllers/userController'
+import messageApi from '@/services/api/messageApi'
+import userApi from '@/services/api/userApi'
 import User from '@/models/User'
 import { generateMessageImage } from '@/utils/shareMessageImage'
 
@@ -29,7 +29,7 @@ export default function DashboardPage() {
             }
 
             const parsedLocalUser = JSON.parse(localData)
-            const userResult = await UserController.getUserById(parsedLocalUser.uid)
+            const userResult = await userApi.getById(parsedLocalUser.uid)
 
             let currentUser
             if (userResult.success) {
@@ -42,7 +42,7 @@ export default function DashboardPage() {
             }
 
             try {
-                const msgResult = await MessageController.listMessages(currentUser.uid)
+                const msgResult = await messageApi.listByUser(currentUser.uid)
                 if (msgResult.success) {
                     setMessages(msgResult.messages)
                     localStorage.setItem(`kala_messages_${currentUser.uid}`, JSON.stringify(msgResult.messages))
@@ -83,7 +83,7 @@ export default function DashboardPage() {
     const handleGenerateLink = async () => {
         setGeneratingLink(true)
         try {
-            const result = await UserController.generateLink(user.uid)
+            const result = await userApi.generateLink(user.uid)
             if (result.success) {
                 const updatedUser = new User({
                     ...user.toJSON(),
