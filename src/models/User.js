@@ -56,7 +56,6 @@ export class User {
             isPremium: this.isPremium,
             messageCount: this.messageCount,
             createdAt: this.createdAt,
-            createdAt: this.createdAt,
             updatedAt: this.updatedAt,
             linkConfig: this.linkConfig
         }

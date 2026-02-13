@@ -6,7 +6,7 @@ import { toast } from 'sonner'
 import { Button } from '@/views/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/views/components/ui/card'
 import { MessageCircle, Crown, Check, Zap, Shield, Star, X, Phone, CreditCard, Smartphone } from 'lucide-react'
-import PaymentController from '@/controllers/paymentController'
+import paymentApi from '@/services/api/paymentApi'
 
 export default function PremiumPage() {
     const router = useRouter()
@@ -25,7 +25,7 @@ export default function PremiumPage() {
 
     const handleUpgrade = async () => {
         setLoading(true)
-        const result = await PaymentController.createPayment(user.uid)
+        const result = await paymentApi.createPayment(user.uid)
 
         if (result.success) {
             setShowPaymentModal(true)

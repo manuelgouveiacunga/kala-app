@@ -8,7 +8,8 @@ import { Input } from '@/views/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/views/components/ui/card'
 import { Label } from '@/views/components/ui/label'
 import { MessageCircle } from 'lucide-react'
-import AuthController from '@/controllers/authController'
+import authApi from '@/services/api/authApi'
+import { loginWithGoogleAndSyncProfile } from '@/services/client/googleAuth'
 import { isValidEmail, isValidPassword } from '@/utils/validation'
 import { FcGoogle } from 'react-icons/fc'
 
@@ -67,7 +68,7 @@ export default function AuthPage() {
 
         try {
             await new Promise(resolve => setTimeout(resolve, 1000))
-            const result = await AuthController.loginWithGoogle()
+            const result = await loginWithGoogleAndSyncProfile()
 
             if (result.success) {
                 toast.success('Autenticado com sucesso!', {
@@ -109,9 +110,9 @@ export default function AuthPage() {
 
             let result
             if (isLogin) {
-                result = await AuthController.login({ email, password })
+                result = await authApi.login({ email, password })
             } else {
-                result = await AuthController.register({ email, password, username })
+                result = await authApi.register({ email, password, username })
             }
 
             if (result.success) {
