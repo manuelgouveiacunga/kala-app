@@ -15,7 +15,7 @@ import { FcGoogle } from 'react-icons/fc'
 
 export default function AuthPage() {
     const router = useRouter()
-    const [isLogin, setIsLogin] = useState(true)
+    const [view, setView] = useState('login') // 'login' | 'register' | 'reset'
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [username, setUsername] = useState('')
@@ -25,6 +25,7 @@ export default function AuthPage() {
     const [passwordError, setPasswordError] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
     const [confirmPasswordError, setConfirmPasswordError] = useState('')
+    const [usernameError, setUsernameError] = useState('')
     const [showPassword, setShowPassword] = useState(false)
     const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
@@ -54,8 +55,23 @@ export default function AuthPage() {
         return true
     }
 
+    const validateUsername = (value) => {
+        if (view === 'register') {
+            if (!value) {
+                setUsernameError('O nome de utilizador é obrigatório')
+                return false
+            }
+            if (value.length < 3) {
+                setUsernameError('O nome deve ter pelo menos 3 caracteres')
+                return false
+            }
+        }
+        setUsernameError('')
+        return true
+    }
+
     const validateConfirmPassword = (value) => {
-        if (!isLogin) {
+        if (view !== 'login') {
             if (!value) {
                 setConfirmPasswordError('A confirmação da palavra-passe é obrigatória')
                 return false
@@ -69,23 +85,48 @@ export default function AuthPage() {
         return true
     }
 
+    const isFormValid = () => {
+        if (view === 'login') {
+            return isValidEmail(email) && isValidPassword(password) && !emailError && !passwordError
+        }
+        if (view === 'register') {
+            return (
+                isValidEmail(email) &&
+                isValidPassword(password) &&
+                confirmPassword === password &&
+                username.length >= 3 &&
+                !emailError && !passwordError && !confirmPasswordError && !usernameError
+            )
+        }
+        if (view === 'reset') {
+            return isValidPassword(password) && confirmPassword === password && !passwordError && !confirmPasswordError
+        }
+        return false
+    }
+
     const handleEmailChange = (e) => {
         const value = e.target.value
         setEmail(value)
-        if (emailError) validateEmail(value)
+        validateEmail(value)
     }
 
     const handlePasswordChange = (e) => {
         const value = e.target.value
         setPassword(value)
-        if (passwordError) validatePassword(value)
-        if (confirmPasswordError) validateConfirmPassword(confirmPassword)
+        validatePassword(value)
+        if (confirmPassword) validateConfirmPassword(confirmPassword)
     }
 
     const handleConfirmPasswordChange = (e) => {
         const value = e.target.value
         setConfirmPassword(value)
-        if (confirmPasswordError) validateConfirmPassword(value)
+        validateConfirmPassword(value)
+    }
+
+    const handleUsernameChange = (e) => {
+        const value = e.target.value.toLowerCase().replace(/[^a-z0-9]/g, '')
+        setUsername(value)
+        validateUsername(value)
     }
 
     const handleGoogleAuth = async () => {
@@ -121,11 +162,12 @@ export default function AuthPage() {
     const handleEmailAuth = async (e) => {
         e.preventDefault()
 
-        const isEmailValid = validateEmail(email)
+        const isEmailValid = view === 'reset' || validateEmail(email)
         const isPasswordValid = validatePassword(password)
-        const isConfirmMatch = isLogin || validateConfirmPassword(confirmPassword)
+        const isConfirmMatch = view === 'login' || validateConfirmPassword(confirmPassword)
+        const isUsernameValid = view !== 'register' || validateUsername(username)
 
-        if (!isEmailValid || !isPasswordValid || !isConfirmMatch) {
+        if (!isEmailValid || !isPasswordValid || !isConfirmMatch || !isUsernameValid) {
             return
         }
 
@@ -136,21 +178,33 @@ export default function AuthPage() {
             await new Promise(resolve => setTimeout(resolve, 1000))
 
             let result
-            if (isLogin) {
+            if (view === 'login') {
                 result = await authApi.login({ email, password })
-            } else {
+            } else if (view === 'register') {
                 result = await authApi.register({ email, password, username })
+            } else if (view === 'reset') {
+                // Simulating password reset
+                result = { success: true }
             }
 
             if (result.success) {
-                toast.success(isLogin ? 'Login efetuado com sucesso!' : 'Conta criada com sucesso!', {
-                    description: isLogin ? 'Bem-vindo de volta ao KALA.' : 'A tua conta foi criada e já podes usar o KALA.',
-                })
-                localStorage.setItem('kala_user', JSON.stringify(result.user))
-                router.push('/dashboard')
+                if (view === 'reset') {
+                    toast.success('Palavra-passe redefinida com sucesso!', {
+                        description: 'Já podes entrar com a tua nova palavra-passe.',
+                    })
+                    setView('login')
+                    setPassword('')
+                    setConfirmPassword('')
+                } else {
+                    toast.success(view === 'login' ? 'Login efetuado com sucesso!' : 'Conta criada com sucesso!', {
+                        description: view === 'login' ? 'Bem-vindo de volta ao KALA.' : 'A tua conta foi criada e já podes usar o KALA.',
+                    })
+                    localStorage.setItem('kala_user', JSON.stringify(result.user))
+                    router.push('/dashboard')
+                }
             } else {
                 setError(result.error)
-                toast.error(isLogin ? 'Erro ao entrar' : 'Erro ao criar conta', {
+                toast.error(view === 'login' ? 'Erro ao entrar' : 'Erro ao criar conta', {
                     description: result.error
                 })
             }
@@ -174,10 +228,10 @@ export default function AuthPage() {
                         </div>
                     </div>
                     <CardTitle className="text-xl sm:text-2xl font-bold">
-                        {isLogin ? 'Entrar no KALA' : 'Criar Conta'}
+                        {view === 'login' ? 'Entrar no KALA' : view === 'register' ? 'Criar Conta' : 'Redefinir Senha'}
                     </CardTitle>
                     <CardDescription className="text-sm sm:text-base">
-                        {isLogin ? 'Bem-vindo de volta!' : 'Começa a receber mensagens anónimas'}
+                        {view === 'login' ? 'Bem-vindo de volta!' : view === 'register' ? 'Começa a receber mensagens anónimas' : 'Cria uma nova palavra-passe para a tua conta'}
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4 px-3 sm:px-6">
@@ -187,65 +241,76 @@ export default function AuthPage() {
                         </div>
                     )}
 
-                    {/* Google Auth */}
-                    <Button
-                        variant="outline"
-                        className="w-full min-h-12 h-auto text-sm sm:text-base py-2 whitespace-normal"
-                        onClick={handleGoogleAuth}
-                        disabled={loading}
-                    >
-                        <FcGoogle className="w-5 h-5 mr-2 shrink-0" />
-                        <span>Continuar com Google</span>
-                    </Button>
+                    {view !== 'reset' && (
+                        <>
+                            <Button
+                                variant="outline"
+                                className="w-full min-h-12 h-auto text-sm sm:text-base py-2 whitespace-normal"
+                                onClick={handleGoogleAuth}
+                                disabled={loading}
+                            >
+                                <FcGoogle className="w-5 h-5 mr-2 shrink-0" />
+                                <span>Continuar com Google</span>
+                            </Button>
 
-                    <div className="relative py-1 sm:py-2">
-                        <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t" />
-                        </div>
-                        <div className="relative flex justify-center text-xs uppercase">
-                            <span className="bg-white px-2 text-gray-500">Ou</span>
-                        </div>
-                    </div>
+                            <div className="relative py-1 sm:py-2">
+                                <div className="absolute inset-0 flex items-center">
+                                    <span className="w-full border-t" />
+                                </div>
+                                <div className="relative flex justify-center text-xs uppercase">
+                                    <span className="bg-white px-2 text-gray-500">Ou</span>
+                                </div>
+                            </div>
+                        </>
+                    )}
 
                     {/* Email Auth */}
                     <form onSubmit={handleEmailAuth} className="space-y-3 sm:space-y-4">
-                        {!isLogin && (
+                        {view === 'register' && (
                             <div className="space-y-1.5 sm:space-y-2">
                                 <Label htmlFor="username" className="text-xs sm:text-sm">Nome de utilizador</Label>
                                 <Input
                                     id="username"
                                     placeholder="Nome de utilizador"
                                     value={username}
-                                    onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9]/g, ''))}
-                                    required={!isLogin}
-                                    className="h-10 sm:h-11"
+                                    onChange={handleUsernameChange}
+                                    required={view === 'register'}
+                                    className={`h-10 sm:h-11 ${usernameError ? "border-red-500 focus-visible:ring-red-500" : ""}`}
                                 />
-                                <p className="text-[10px] sm:text-xs text-gray-500 truncate">Teu link: kala.ao/m/{username || 'utilizador'}</p>
+                                {usernameError ? (
+                                    <p className="text-[10px] sm:text-xs text-red-500 font-medium">{usernameError}</p>
+                                ) : (
+                                    <p className="text-[10px] sm:text-xs text-gray-500 truncate">Teu link: kala.ao/m/{username || 'utilizador'}</p>
+                                )}
+                            </div>
+                        )}
+
+                        {view !== 'reset' && (
+                            <div className="space-y-1.5 sm:space-y-2">
+                                <Label htmlFor="email" className="text-xs sm:text-sm">Email</Label>
+                                <Input
+                                    id="email"
+                                    type="email"
+                                    placeholder="Email"
+                                    value={email}
+                                    onChange={handleEmailChange}
+                                    onBlur={() => validateEmail(email)}
+                                    className={`h-10 sm:h-11 ${emailError ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                                    required
+                                />
+                                {emailError && <p className="text-[10px] sm:text-xs text-red-500 font-medium">{emailError}</p>}
                             </div>
                         )}
 
                         <div className="space-y-1.5 sm:space-y-2">
-                            <Label htmlFor="email" className="text-xs sm:text-sm">Email</Label>
-                            <Input
-                                id="email"
-                                type="email"
-                                placeholder="Email"
-                                value={email}
-                                onChange={handleEmailChange}
-                                onBlur={() => validateEmail(email)}
-                                className={`h-10 sm:h-11 ${emailError ? "border-red-500 focus-visible:ring-red-500" : ""}`}
-                                required
-                            />
-                            {emailError && <p className="text-[10px] sm:text-xs text-red-500 font-medium">{emailError}</p>}
-                        </div>
-
-                        <div className="space-y-1.5 sm:space-y-2">
-                            <Label htmlFor="password" title="Palavra-passe" className="text-xs sm:text-sm">Palavra-passe</Label>
+                            <Label htmlFor="password" title="Palavra-passe" className="text-xs sm:text-sm">
+                                {view === 'reset' ? 'Nova Palavra-passe' : 'Palavra-passe'}
+                            </Label>
                             <div className="relative">
                                 <Input
                                     id="password"
                                     type={showPassword ? "text" : "password"}
-                                    placeholder="Palavra-passe"
+                                    placeholder={view === 'reset' ? "Nova Palavra-passe" : "Palavra-passe"}
                                     value={password}
                                     onChange={handlePasswordChange}
                                     onBlur={() => validatePassword(password)}
@@ -262,10 +327,16 @@ export default function AuthPage() {
                             </div>
                             {passwordError && <p className="text-[10px] sm:text-xs text-red-500 font-medium">{passwordError}</p>}
 
-                            {isLogin && (
+                            {view === 'login' && (
                                 <div className="text-right">
                                     <button
                                         type="button"
+                                        onClick={() => {
+                                            setView('reset')
+                                            setPassword('')
+                                            setConfirmPassword('')
+                                            setError('')
+                                        }}
                                         className="text-[10px] sm:text-xs text-purple-600 hover:underline"
                                     >
                                         Esqueci-me da palavra-passe
@@ -274,19 +345,21 @@ export default function AuthPage() {
                             )}
                         </div>
 
-                        {!isLogin && (
+                        {view !== 'login' && (
                             <div className="space-y-1.5 sm:space-y-2">
-                                <Label htmlFor="confirmPassword" title="Confirmar Palavra-passe" className="text-xs sm:text-sm">Confirmar Palavra-passe</Label>
+                                <Label htmlFor="confirmPassword" title="Confirmar Palavra-passe" className="text-xs sm:text-sm">
+                                    {view === 'reset' ? 'Confirmar Nova Palavra-passe' : 'Confirmar Palavra-passe'}
+                                </Label>
                                 <div className="relative">
                                     <Input
                                         id="confirmPassword"
                                         type={showConfirmPassword ? "text" : "password"}
-                                        placeholder="Confirmar Palavra-passe"
+                                        placeholder={view === 'reset' ? "Confirmar Nova Palavra-passe" : "Confirmar Palavra-passe"}
                                         value={confirmPassword}
                                         onChange={handleConfirmPasswordChange}
                                         onBlur={() => validateConfirmPassword(confirmPassword)}
                                         className={`h-10 sm:h-11 pr-10 ${confirmPasswordError ? "border-red-500 focus-visible:ring-red-500" : ""}`}
-                                        required={!isLogin}
+                                        required
                                     />
                                     <button
                                         type="button"
@@ -302,21 +375,37 @@ export default function AuthPage() {
 
                         <Button
                             type="submit"
-                            className="w-full min-h-12 h-auto bg-gradient-to-r from-purple-600 to-pink-600 text-sm sm:text-base font-medium"
-                            disabled={loading}
+                            className="w-full min-h-12 h-auto bg-gradient-to-r from-purple-600 to-pink-600 text-sm sm:text-base font-medium disabled:opacity-50 disabled:grayscale disabled:cursor-not-allowed"
+                            disabled={loading || !isFormValid()}
                         >
-                            {loading ? 'Aguarda...' : (isLogin ? 'Entrar' : 'Criar Conta')}
+                            {loading ? 'Aguarda...' : (view === 'login' ? 'Entrar' : view === 'register' ? 'Criar Conta' : 'Confirmar')}
                         </Button>
                     </form>
 
                     <div className="text-center text-xs sm:text-sm pt-2">
-                        <button
-                            type="button"
-                            onClick={() => setIsLogin(!isLogin)}
-                            className="text-purple-600 hover:underline font-medium"
-                        >
-                            {isLogin ? 'Não tens conta? Cria aqui' : 'Já tens conta? Entra aqui'}
-                        </button>
+                        {view === 'reset' ? (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setView('login')
+                                    setError('')
+                                }}
+                                className="text-purple-600 hover:underline font-medium"
+                            >
+                                Voltar ao Login
+                            </button>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setView(view === 'login' ? 'register' : 'login')
+                                    setError('')
+                                }}
+                                className="text-purple-600 hover:underline font-medium"
+                            >
+                                {view === 'login' ? 'Não tens conta? Cria aqui' : 'Já tens conta? Entra aqui'}
+                            </button>
+                        )}
                     </div>
                 </CardContent>
             </Card>
