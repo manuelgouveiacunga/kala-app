@@ -14,7 +14,6 @@ export default function RootLayout({ children }) {
         {children}
         <Analytics />
         <Toaster />
-        <Analytics />
       </body>
     </html>
   )
