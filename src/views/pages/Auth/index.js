@@ -7,7 +7,7 @@ import { Button } from '@/views/components/ui/button'
 import { Input } from '@/views/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/views/components/ui/card'
 import { Label } from '@/views/components/ui/label'
-import { MessageCircle } from 'lucide-react'
+import { MessageCircle, Eye, EyeOff } from 'lucide-react'
 import authApi from '@/services/api/authApi'
 import { loginWithGoogleAndSyncProfile } from '@/services/client/googleAuth'
 import { isValidEmail, isValidPassword } from '@/utils/validation'
@@ -23,6 +23,10 @@ export default function AuthPage() {
     const [error, setError] = useState('')
     const [emailError, setEmailError] = useState('')
     const [passwordError, setPasswordError] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
+    const [confirmPasswordError, setConfirmPasswordError] = useState('')
+    const [showPassword, setShowPassword] = useState(false)
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
     const validateEmail = (value) => {
         if (!value) {
@@ -50,6 +54,21 @@ export default function AuthPage() {
         return true
     }
 
+    const validateConfirmPassword = (value) => {
+        if (!isLogin) {
+            if (!value) {
+                setConfirmPasswordError('A confirmação da palavra-passe é obrigatória')
+                return false
+            }
+            if (value !== password) {
+                setConfirmPasswordError('As palavras-passe não coincidem')
+                return false
+            }
+        }
+        setConfirmPasswordError('')
+        return true
+    }
+
     const handleEmailChange = (e) => {
         const value = e.target.value
         setEmail(value)
@@ -60,6 +79,13 @@ export default function AuthPage() {
         const value = e.target.value
         setPassword(value)
         if (passwordError) validatePassword(value)
+        if (confirmPasswordError) validateConfirmPassword(confirmPassword)
+    }
+
+    const handleConfirmPasswordChange = (e) => {
+        const value = e.target.value
+        setConfirmPassword(value)
+        if (confirmPasswordError) validateConfirmPassword(value)
     }
 
     const handleGoogleAuth = async () => {
@@ -97,8 +123,9 @@ export default function AuthPage() {
 
         const isEmailValid = validateEmail(email)
         const isPasswordValid = validatePassword(password)
+        const isConfirmMatch = isLogin || validateConfirmPassword(confirmPassword)
 
-        if (!isEmailValid || !isPasswordValid) {
+        if (!isEmailValid || !isPasswordValid || !isConfirmMatch) {
             return
         }
 
@@ -213,19 +240,65 @@ export default function AuthPage() {
                         </div>
 
                         <div className="space-y-1.5 sm:space-y-2">
-                            <Label htmlFor="password" className="text-xs sm:text-sm">Palavra-passe</Label>
-                            <Input
-                                id="password"
-                                type="password"
-                                placeholder="Palavra-passe"
-                                value={password}
-                                onChange={handlePasswordChange}
-                                onBlur={() => validatePassword(password)}
-                                className={`h-10 sm:h-11 ${passwordError ? "border-red-500 focus-visible:ring-red-500" : ""}`}
-                                required
-                            />
+                            <Label htmlFor="password" title="Palavra-passe" className="text-xs sm:text-sm">Palavra-passe</Label>
+                            <div className="relative">
+                                <Input
+                                    id="password"
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Palavra-passe"
+                                    value={password}
+                                    onChange={handlePasswordChange}
+                                    onBlur={() => validatePassword(password)}
+                                    className={`h-10 sm:h-11 pr-10 ${passwordError ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                                >
+                                    {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                </button>
+                            </div>
                             {passwordError && <p className="text-[10px] sm:text-xs text-red-500 font-medium">{passwordError}</p>}
+
+                            {isLogin && (
+                                <div className="text-right">
+                                    <button
+                                        type="button"
+                                        className="text-[10px] sm:text-xs text-purple-600 hover:underline"
+                                    >
+                                        Esqueci-me da palavra-passe
+                                    </button>
+                                </div>
+                            )}
                         </div>
+
+                        {!isLogin && (
+                            <div className="space-y-1.5 sm:space-y-2">
+                                <Label htmlFor="confirmPassword" title="Confirmar Palavra-passe" className="text-xs sm:text-sm">Confirmar Palavra-passe</Label>
+                                <div className="relative">
+                                    <Input
+                                        id="confirmPassword"
+                                        type={showConfirmPassword ? "text" : "password"}
+                                        placeholder="Confirmar Palavra-passe"
+                                        value={confirmPassword}
+                                        onChange={handleConfirmPasswordChange}
+                                        onBlur={() => validateConfirmPassword(confirmPassword)}
+                                        className={`h-10 sm:h-11 pr-10 ${confirmPasswordError ? "border-red-500 focus-visible:ring-red-500" : ""}`}
+                                        required={!isLogin}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700 transition-colors"
+                                    >
+                                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
+                                </div>
+                                {confirmPasswordError && <p className="text-[10px] sm:text-xs text-red-500 font-medium">{confirmPasswordError}</p>}
+                            </div>
+                        )}
 
                         <Button
                             type="submit"
