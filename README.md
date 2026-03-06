@@ -58,6 +58,7 @@ yarn dev
 
 - [Guia Rápido](./docs/GUIA_RAPIDO.md)
 - [Documentação Completa](./docs/README_KALA.md)
+- [Estratégia e Negócio](./docs/STRATEGIC_BUSINESS.md)
 
 ## 🔒 Variáveis de Ambiente
 
